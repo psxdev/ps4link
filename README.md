@@ -33,7 +33,7 @@ PS4LINK FOR PS4
   edit source/main.c and change your mac/linux server ip and your base directory for example host0:/usr/local
   
   ```
-  cd psp2link
+  cd ps4link
   make
   ```
 
