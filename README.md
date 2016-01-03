@@ -168,7 +168,7 @@ PS4LINK FOR PS4
   
  4) Compile ps4sh
  
-  ps4sh will let you speak with ps4link, unset path variables added for your environment in osx to use native compiler it is a host tool
+  ps4sh will let you speak with ps4link, unset path variables added for your environment in osx to use native compiler it is a host tool. It is based on pksh tools that we used in ps2dev days and credit goes to all people involved in its developments greets to all of them.
   
   ```
   cd /usr/local/ps4dev/git/ps4link/ps4sh
