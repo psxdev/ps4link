@@ -1,10 +1,10 @@
 /*
- * ps4link library for PS4 to communicate and use host file system with ps4client host tool 
- * Copyright (C) 2003,2015 Antonio Jose Ramos Marquez (aka bigboss) @psxdev on twitter
+ * PS4link library for PlayStation 4 to communicate and use host file system with ps4sh host tool 
+ * Copyright (C) 2003,2015,2016 Antonio Jose Ramos Marquez (aka bigboss) @psxdev on twitter
  * Repository https://github.com/psxdev/ps4link
- * based on psp2link,ps2vfs, ps2client, ps2link, ps2http tools. 
+ * based on ps2vfs, ps2client, ps2link, ps2http tools. 
  * Credits goes for all people involved in ps2dev project https://github.com/ps2dev
- * This file is subject to the terms and conditions of the ps4link License.
+ * This file is subject to the terms and conditions of the PS4Link License.
  * See the file LICENSE in the main directory of this distribution for more
  * details.
  */
@@ -139,6 +139,18 @@ typedef struct
     char name[256];
 } __attribute__((packed)) ps4link_pkt_dread_rly;
 
+#define PS4LINK_EXECELF_CMD 0xbabe0201
+#define	PS4LINK_EXECSPRX_CMD 0xbabe0202
+#define	PS4LINK_EXIT_CMD 0xbabe0203
+
+
+typedef struct
+{
+    unsigned int cmd;
+    unsigned short len;
+    int  argc;
+    char argv[PS4LINK_MAX_PATH];
+} __attribute__((packed)) ps4link_pkt_exec_cmd;
 
 
 #define PS4LINK_MAX_WRITE_SEGMENT (65535 - sizeof(ps4link_pkt_write_req))  //1460

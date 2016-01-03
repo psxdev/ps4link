@@ -120,6 +120,7 @@ PS4LINK FOR PS4
   
  2) Declare variables and install libps4
   
+  ```
   PS4DEV=/usr/local/ps4dev;export PS4DEV
   libps4=$PS4DEV/libps4;export libps4
   cd /usr/local/ps4dev
@@ -130,6 +131,7 @@ PS4LINK FOR PS4
   cp -frv make $PS4DEV/libps4
   cp -frv lib $PS4DEV/libps4
   cp crt0.s $PS4DEV/libps4
+  ```
   
  3) PS4link
   
@@ -162,12 +164,11 @@ PS4LINK FOR PS4
   cd ../..
   cd ps4link
   make
-  make install
   ```
   
  4) Compile ps4sh
  
-  ps4sh will let you speak with ps4link 
+  ps4sh will let you speak with ps4link, unset path variables added for your environment in osx to use native compiler it is a host tool
   
   ```
   cd /usr/local/ps4dev/git/ps4link/ps4sh
@@ -279,7 +280,7 @@ PS4LINK FOR PS4
   Special thanks goes to:
   
   - ps2dev old comrades. 
-  - xerpi, hitodama, CTurt
+  - hitodama, CTurt
   - All people who collaborated in ps4dev
   
   
