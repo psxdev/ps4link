@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <ps4link.h>
 #include <debugnet.h>
+#include <signal.h>
 
 
 int main(void) {
@@ -24,7 +25,7 @@ int main(void) {
 	int modules[256];
 	
 	
-	
+	signal(SIGPIPE, SIG_IGN);
 	
 	ret=ps4LinkInit("192.168.1.3",0x4711,0x4712,0x4712,DEBUG);
 	if(!ret)
@@ -41,7 +42,9 @@ int main(void) {
 	debugNetPrintf(DEBUG,"[PS4LINK] Initialized and connected from pc/mac ready to receive commands\n");
 	
 
-
+	while(1)
+	{
+	}
 	// Return to browser threads working in the background
 	return 0;
 }

@@ -1,6 +1,3 @@
-#
-# Copyright (c) 2015 Antonio Jose Ramos Marquez aka bigboss (@psxdev)
-#
 
 
 ifdef libps4
@@ -14,15 +11,15 @@ $(error Neither LIBPS4, LibPS4 nor libps4 set)
 endif
 
 
-CC	:= clang
-AS	:= clang
+CC		:= clang -v
+AS		:= clang -v
 OBJCOPY	:= objcopy
 ODIR	:= build
 SDIR	:= source
 BDIR	:= bin
 IDIRS	:= -I$(LibPS4)/include -I. -Iinclude
 LDIRS	:= -L$(LibPS4)/lib 
-LIBS	:= -ldebugnet -lps4link -lelfloader -lps4
+LIBS	:= -ldebugnet -lps4
 CFLAGS	:=	-std=c11 -O3 -Wall -pedantic -m64 -mcmodel=large -ffreestanding -nostdlib -nostdinc -fno-builtin -D__PS4__ $(IDIRS)  -target x86_64-scei-ps4-elf  -fPIE
 SFLAGS	:=	$(IDIRS) -m64 -fPIE -target x86_64-scei-ps4-elf
 LFLAGS	:=	-O3 -Wall -m64 -nostdlib $(LDIRS) -pie $(LIBS)  
@@ -31,14 +28,18 @@ SFILES	= $(wildcard $(SDIR)/*.s)
 OBJS	= $(ODIR)/main.o
 TARGET = $(shell basename $(CURDIR))
 
-ALL: $(ODIR) $(BDIR) $(TARGET)
+ALL: $(TARGET)
 
 $(TARGET):  $(OBJS)
+	echo $(OBJS) nene
 	$(CC) $(LibPS4)/crt0.s $^  $(LFLAGS)  -o $(BDIR)/$@.elf
 	$(OBJCOPY) $(BDIR)/$@.elf -O binary $(BDIR)/$@.bin
 
 $(ODIR)/%.o: $(SDIR)/%.c
 	$(CC) -c $< $(CFLAGS) -o $@
+
+#$(ODIR)/%.o: $(SDIR)/%.s
+#	$(AS) -c -o $@ $< $(SFLAGS)
 
 $(ODIR):
 	@mkdir $@

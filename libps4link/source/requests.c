@@ -82,16 +82,17 @@ static inline int ps4link_send(int sock, void *buf, int len, int flag)
 	}
 }
 
- 
 int ps4link_recv_bytes(int sock, char *buf, int bytes)
 {
-	int left;
+	size_t left;
 	int len;
 
-	left = bytes;
+	left =(size_t) bytes;
 
 	while (left > 0) {
 		len = sceNetRecv(sock, &buf[bytes - left], left, MSG_WAITALL);
+		//len = read(sock, &buf[bytes - left], left);
+		
 		if (len < 0) {
 			debugNetPrintf(DEBUG,"[PS4LINK] ps4link_recv_bytes error!! 0x%08X\n",len);
 			return -1;
@@ -99,6 +100,11 @@ int ps4link_recv_bytes(int sock, char *buf, int bytes)
 		left -= len;
 	}
 	return bytes;
+	
+	
+	
+	
+	
 }
 
 
@@ -268,12 +274,31 @@ int ps4LinkRead(int fd, void *data, size_t size)
 	nbytes = sceNetNtohl(readrly->nbytes);
 	debugNetPrintf(DEBUG,"[PS4LINK] ps4link_read_file: Reply said there's %d bytes to read " "(wanted %d)\n", nbytes, size);
 
-	// Now read the actual file data
-	i = ps4link_recv_bytes(ps4LinkGetValue(FILEIO_SOCK), &data[0], nbytes);
-	if (i < 0) {
-    	debugNetPrintf(DEBUG,"[PS4LINK] ps4link_read_file, data read error\n");
-    	return -1;
+	// Now read the actual file data divide in chunk
+	int numread=nbytes/PACKET_MAXSIZE;
+	int lastread=nbytes%PACKET_MAXSIZE;
+	int j;
+	for(j=0;j<numread;j++)
+	{
+		if(j<numread-1)
+		{
+			i = ps4link_recv_bytes(ps4LinkGetValue(FILEIO_SOCK), data+j*PACKET_MAXSIZE, PACKET_MAXSIZE);
+		}
+		else
+		{
+			i = ps4link_recv_bytes(ps4LinkGetValue(FILEIO_SOCK), data+j*PACKET_MAXSIZE, PACKET_MAXSIZE+lastread);
+			
+		}
+		if (i < 0) {
+	    	debugNetPrintf(DEBUG,"[PS4LINK] ps4link_read_file, data read error\n");
+	    	return -1;
+		}
+		debugNetPrintf(DEBUG,"[PS4LINK] ps4link_read_file: chunk %d  readed %d\n", j,i);
+		
+		
 	}
+	
+	
 	return nbytes;
 }
 int ps4LinkWrite(int fd, const void *data, size_t size)

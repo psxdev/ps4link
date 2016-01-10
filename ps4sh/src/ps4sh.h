@@ -54,7 +54,7 @@
 
 #include "common.h"
 #include "rl_common.h"
-
+#include "debugnet.h"
 #include "ps4link.h"
 #include "network.h"
 #include "utility.h"
@@ -114,12 +114,12 @@ COMMAND * find_command(char *);
 
 COMMAND commands[19] = {
     { "?", cli_help, "? :: Synonym for `help'." },
-    { "cd", cli_cd, "cd [dir] :: Change pksh directory to [dir]." },
-    { "debug", cli_debug, "debug :: Show pksh debug messages. ( alt-d )" },
-    { "exit", cli_quit, "exit :: Exits pksh ( alt-q )" },
+    { "cd", cli_cd, "cd [dir] :: Change ps4sh directory to [dir]." },
+    { "debug", cli_debug, "debug :: Show ps4sh debug messages. ( alt-d )" },
+    { "exit", cli_quit, "exit :: Exits ps4sh ( alt-q )" },
     { "help", cli_help, "help :: Display this text." },
     { "list", cli_list, "list [dir] :: List files in [dir]." },
-    { "log", cli_log, "log [file] :: Log messages from PS2 to [file]."},
+    { "log", cli_log, "log [file] :: Log messages from PS4 to [file]."},
     { "ls", cli_list, "ls [dir] :: Synonym for list" },
     { "make", cli_make, "make [argn] ... :: Execute make [argn] ..." },
     { "gmake", cli_gmake, "gmake [argn] ... :: Execute gmake [argn] ..." },	
@@ -128,7 +128,7 @@ COMMAND commands[19] = {
     { "setroot", cli_setroot, "setroot [dir] :: Sets [dir] to be root dir." },
     { "status", cli_status, "status :: Display some pksh information. ( alt-s )" },
     { "execelf", cli_execelf, "execelf :: Load and exec elf. ..." },
-    { "execsprx", cli_execelf, "execsprx :: Load and exec sprx. ..." },
+    { "execsprx", cli_execsprx, "execsprx :: Load and exec sprx. ..." },
     { "exitps4", cli_exitps4, "exitps4 :: Finish ps4link in ps4 side. ..." },
     { "verbose", cli_verbose, "verbose :: Show verbose pksh messages. ( alt-v )" },
 	{ (char *)NULL, (rl_icpfunc_t *)NULL, (char *)NULL }

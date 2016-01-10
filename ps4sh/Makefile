@@ -6,7 +6,7 @@
   CFLAGS = -std=gnu99 -Wall -pedantic -I/usr/include -I/usr/local/include -I/opt/local/include
 
   ifeq "x$(MSYSTEM)" "x"
-   LIBS = -L/opt/local/lib -lpthread -lreadline -lcurses -lncurses
+   LIBS = -L/opt/local/lib -lpthread -lreadline -lcurses -lncurses 
   #TODO WINDOWS SUPPORT
   else
    LIBS = -lwsock32 -lpthreadGC2 
@@ -53,6 +53,11 @@
   obj/common.o: src/common.c src/common.h 
 	@mkdir -p obj
 	$(CC) $(CFLAGS) -c src/common.c -o obj/common.o
+	
+  OFILES += obj/debugnet.o
+  obj/debugnet.o: src/debugnet.c src/debugnet.h 
+	@mkdir -p obj
+	$(CC) $(CFLAGS) -c src/debugnet.c -o obj/debugnet.o
 
  #####################
  ## CLIENT PROGRAMS ##

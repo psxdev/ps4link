@@ -86,7 +86,7 @@ int ps4LinkInit(char *serverIp, int requestPort,int debugPort, int commandPort,i
 			return 0;
 		}
 	
-		ret=scePthreadCreate(&server_command_thid, NULL, ps4link_commands_thread, NULL, "psp4link_command_server_thread");
+		ret=scePthreadCreate(&server_command_thid, NULL, ps4link_commands_thread, NULL, "ps4link_command_server_thread");
 		
 		if(ret==0)
 		{

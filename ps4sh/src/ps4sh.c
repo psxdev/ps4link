@@ -19,7 +19,7 @@ extern int console_socket;
 extern int request_socket;
 //ps4link udp command service
 extern int command_socket; 
-
+//ps4sh tcp socket for third parties apps
 extern int ps4sh_socket; 
 
 
@@ -44,7 +44,7 @@ int ps4sh_log_read(int fd)
 
 	if (ret == -1) 
 	{
-		perror("read");
+		debugNetPrintf(ERROR,"recvfrom error %s\n",strerror(errno));
 	}
 
 	loc += ret;
@@ -127,7 +127,7 @@ int ps4sh_srv_read(int fd)
 				{
 					gettimeofday(&benchtime, NULL);
 					time2=(benchtime.tv_sec - time_base)*USEC+benchtime.tv_usec;
-					printf(" took %2.3fs\n", ((float)(time2-time1)/(float)USEC));
+					debugNetPrintf(DEBUG,"took %2.3fs\n", ((float)(time2-time1)/(float)USEC));
 				}
 				ps4link_request_close(&packet);
 				break;    
@@ -161,13 +161,12 @@ int ps4sh_srv_read(int fd)
 			case PS4LINK_EXECELF_CMD:    
 			//	ps4link_command_execelf(&packet);  
 			printf("Received execee request/command number (%x)\n",packet.number);
-				
 				break;
 			case PS4LINK_EXECSPRX_CMD:    
-			//	ps4link_commadm_execelf(&packet);  
+		//		ps4link_command_execsprx(&packet);  
 				break;
 			default:
-				printf("Received unsupported request/command number (%x)\n",packet.number);
+				debugNetPrintf(DEBUG,"Received unsupported request/command number (%x)\n",packet.number);
 				break;
 		}
 	}
@@ -204,8 +203,7 @@ int main(int argc, char* argv[])
 	
 	
 	// create request socket connected to ps4link fio service
-	printf(" Connecting to fio ps4link ip %s", dst_ip);
-	fflush(stdout);
+	printf("Connecting to fio ps4link ip %s ", dst_ip);
 	
 	request_socket = ps4link_fio_listener(dst_ip, SRV_PORT, 60);
 	if (request_socket < 0) {
@@ -267,6 +265,7 @@ int main(int argc, char* argv[])
 	
 	//initilize readline
 	initialize_readline();
+	debugNetPrintf(INFO,"Ready\n");
     
 	//mail loop
 	while(doloop) {
@@ -277,7 +276,7 @@ int main(int argc, char* argv[])
 			if ( FD_ISSET(0, &readset) ) {
 				continue;
 			}
-			perror("select");
+			debugNetPrintf(ERROR,"In select %s\n",strerror(errno));
 			break;
 		} 
 		else if (ret == 0) 
@@ -355,14 +354,14 @@ int main(int argc, char* argv[])
 
 	rl_callback_handler_remove();
 	if ( (ret = network_disconnect(request_socket)) == -1 ) {
-		perror("request_socket");
+		debugNetPrintf(ERROR,"From request_socket network_disconect %s\n",strerror(errno));
 	}
 	if ( (ret = network_disconnect(console_socket)) == -1 ) {
-		perror("console_socket");
+		debugNetPrintf(ERROR,"From console_socket network_disconect %s\n",strerror(errno));		
 	}
 	if ( log_to_file ) {
 		if ((ret = close(log_f_fd)) == -1)
-			perror("log_f_fd");
+			debugNetPrintf(ERROR,"From file log closing %s\n",strerror(errno));				
 	}
     
     
@@ -371,7 +370,7 @@ int main(int argc, char* argv[])
 
 	if (strcmp(ps4sh_history, "") != 0 ) {
 		if ( (ret = write_history(ps4sh_history)) != 0) 
-			perror("write_history");
+			debugNetPrintf(ERROR,"From ps4sh_history %s\n",strerror(errno));				
 	}
 	printf("\n");
 	return(0);
@@ -454,8 +453,7 @@ int cli_list(char *arg)
 
 	split_filename(device, dir, filename, arg);
 	if(device[0] != NULL) 
-	{
-        
+	{     
 		return 0;
 	} 
 	else 
@@ -480,7 +478,7 @@ int cli_cd(char *arg)
 	}
 	if (chdir(arg) == -1) 
 	{
-		perror(arg);
+		debugNetPrintf(ERROR,"%s %s\n",strerror(errno));
 		return 1;
 	}
 	cli_pwd();
@@ -548,24 +546,24 @@ int cli_debug()
 
 int cli_status() 
 {
-	printf(" TCP srv fd = %d\n", request_socket);
-	printf(" UDP log fd = %d\n", console_socket);
-	printf(" PS4SH cmd fd = %d\n", ps4sh_socket);
+	debugNetPrintf(INFO," TCP srv fd = %d\n", request_socket);
+	debugNetPrintf(INFO," UDP log fd = %d\n", console_socket);
+	debugNetPrintf(INFO," PS4SH cmd fd = %d\n", ps4sh_socket);
 	if ( log_to_file )
-		printf(" Logging to file\n");
+		debugNetPrintf(INFO," Logging to file\n");
 	else
-		printf(" Logging to stdout\n");
+		debugNetPrintf(INFO," Logging to stdout\n");
 	if ( VERBOSE )
-		printf(" Verbose mode is on\n");
+		debugNetPrintf(INFO," Verbose mode is on\n");
 	else
-		printf(" Verbose mode is off\n");
+		debugNetPrintf(INFO," Verbose mode is off\n");
 
 	if(ps4link_debug()) {
-		printf(" Debug is on\n");
+		debugNetPrintf(INFO," Debug is on\n");
 	} 
 	else 
 	{
-		printf(" Debug is off\n");
+		debugNetPrintf(INFO," Debug is off\n");
 	}
     /*
 	if ( DUMPSCREEN ) {
@@ -597,17 +595,17 @@ int cli_log(char *arg)
 		if ( log_to_file )
 		{
 			if (VERBOSE)
-				printf(" Closing log file fd\n");
+				debugNetPrintf(DEBUG,"Closing log file fd\n");
 			close(log_f_fd);
 		}
 		if (VERBOSE)
-			printf(" Logging to stdout\n");
+			debugNetPrintf(DEBUG,"Logging to stdout\n");
 		log_to_file = 0;
 	} 
 	else 
 	{
 		if (VERBOSE)
-			printf(" Open file %s for logging\n", arg);
+			debugNetPrintf(DEBUG,"Open file %s for logging\n", arg);
 		log_to_file = 1;
 		log_f_fd = open(arg, LOG_F_CREAT, LOG_F_MODE);
 	}
@@ -616,11 +614,11 @@ int cli_log(char *arg)
 
 int cli_verbose() {
 	if (VERBOSE) {
-		printf(" Verbose off\n");
+		debugNetPrintf(DEBUG," Verbose off\n");
 		VERBOSE = 0;
 	} else {
 		VERBOSE = 1;
-		printf(" Verbose on\n");
+		debugNetPrintf(DEBUG," Verbose on\n");
 	}
 	return 0;
 }
@@ -639,8 +637,7 @@ int cli_execelf(char *arg)
     unsigned int argc, argvlen;
     unsigned char argv[MAX_PATH];
     argc = fix_cmd_arg(argv, arg, &argvlen);
-	printf("argc=%d argv=%s\n",argc,argv);
-	
+	debugNetPrintf(DEBUG,"argc=%d argv=%s\n",argc,argv);
     ps4link_command_execelf(argc,argv,argvlen);
     return 0;
 }
@@ -651,8 +648,7 @@ int cli_execsprx(char *arg)
     unsigned int argc, argvlen;
     unsigned char argv[MAX_PATH];
     argc = fix_cmd_arg(argv, arg, &argvlen);
-	printf("argc=%d argv=%s\n",argc,argv);
-	
+	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
     ps4link_command_exesprx(argc,argv,argvlen);
     return 0;
 }
@@ -663,9 +659,9 @@ int cli_exitps4(char *arg)
     unsigned int argc, argvlen;
     unsigned char argv[MAX_PATH];
     argc = fix_cmd_arg(argv, arg, &argvlen);
-	printf("argc=%d argv=%s\n",argc,argv);
-	
+	debugNetPrintf(DEBUG,"argc=%d argv=%s\n",argc,argv);
     ps4link_command_exit(argc,argv,argvlen);
+	doloop=0;
     return 0;
 }
 /*
@@ -730,7 +726,7 @@ void read_config(void)
 		strcpy(value, "./");
 	}
 
-	strcat(value, "/.pkshrc");
+	strcat(value, "/.ps4shrc");
 	if ( (fd = fopen(value, "rb")) == NULL ) 
 	{
 		perror(value);

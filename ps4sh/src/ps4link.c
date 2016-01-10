@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <pthread.h>
 #include <errno.h>
+#include "debugnet.h"
 
 #ifndef _WIN32
 #include <netinet/in.h>
@@ -85,7 +86,7 @@ int ps4link_connect(char *hostname)
 	{
 		request_socket = network_connect(hostname, 0x4711, SOCK_STREAM);
 		sleep(1);
-		printf("waiting psp2...\n");
+		debugNetPrintf(DEBUG,"waiting ps4...\n");
 	 	
 	}
 	if (request_socket > 0) 
@@ -302,10 +303,10 @@ int ps4link_srv_setup(char *src_ip, int port)
 	return fd;
 }
 
-static int DEBUG;
+//static int DEBUG;
 
 void ps4link_set_debug(int level) {
-    DEBUG = level;
+   // DEBUG = level;
     return;
 }
 
@@ -314,7 +315,7 @@ int ps4link_debug(void) {
 }
 
 void ps4link_set_root(char *p) {
-    /* printf("new root = %s\n", p); */
+    /* debugNetPrintf(DEBUG,"new root = %s\n", p); */
     /* strcpy(rootdir, p); */
     return;
 }
@@ -408,7 +409,7 @@ int ps4link_request_open(void *packet)
 	}
 	request->flags = fix_flags(ntohl(request->flags));
 
-	printf("Opening %s flags %x\n",request->pathname,request->flags);
+	debugNetPrintf(DEBUG,"Opening %s flags %x\n",request->pathname,request->flags);
     
 	if(((stat(request->pathname, &stats) == 0) && (!S_ISDIR(stats.st_mode))) || (request->flags & O_CREAT))
 	{
@@ -421,7 +422,7 @@ int ps4link_request_open(void *packet)
 	}
 
 	// Send the response.
-	printf("Open return %d\n",result);
+	debugNetPrintf(DEBUG,"Open return %d\n",result);
 	return ps4link_response_open(result);
 
 }
@@ -434,6 +435,7 @@ int ps4link_request_close(void *packet)
 	// Perform the request.
 	result = close(ntohl(request->fd));
 
+	debugNetPrintf(DEBUG,"close return %d",result);
 	// Send the response.
 	return ps4link_response_close(result);
 
@@ -471,9 +473,9 @@ int ps4link_request_read(void *packet)
 		// Perform the request.
 		size = read(ntohl(request->fd), buffer, ntohl(request->size));
 		//int error=errno ;
-		//printf("Error reading file: %s %s\n", strerror( error ),buffer);
+		//debugNetPrintf(DEBUG,"Error reading file: %s %s\n", strerror( error ),buffer);
 		result=size;
-		//printf("read %d bytes of file descritor %d\n",result,ntohl(request->fd));
+		debugNetPrintf(DEBUG,"read %d bytes of file descritor %d\n",result,ntohl(request->fd));
 
 		// Send the response.
 		ps4link_response_read(result, size);
@@ -541,7 +543,7 @@ int ps4link_request_lseek(void *packet)
 
 	// Perform the request.
 	result = lseek(ntohl(request->fd), ntohl(request->offset), ntohl(request->whence));
-	printf("%d result of lseek %d offset %d whence\n",result,ntohl(request->offset), ntohl(request->whence));
+	debugNetPrintf(DEBUG,"%d result of lseek %d offset %d whence\n",result,ntohl(request->offset), ntohl(request->whence));
 	// Send the response.
 	return ps4link_response_lseek(result);
 
@@ -646,7 +648,7 @@ int ps4link_request_readdir(void *packet)
 		
 		// Convert the mode.
 		mode = (stats.st_mode& 0xFFF);//0x01FF);//0x07);
-		//printf("mode %x st_mode %04o\n",mode,stats.st_mode);
+		//debugNetPrintf(DEBUG,"mode %x st_mode %04o\n",mode,stats.st_mode);
 		if (S_ISDIR(stats.st_mode)) 
 		{ 
 			mode |= 0x0040000;
@@ -984,7 +986,7 @@ void *ps4link_thread_request(void *thread_id)
 				ps4link_request_rmdir(&packet);  
 				break;
 			default:
-				printf("Received unsupported request number\n");
+				debugNetPrintf(DEBUG,"Received unsupported request number\n");
 				break;
 		}
    	 	
