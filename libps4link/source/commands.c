@@ -13,12 +13,17 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+
 #include <ps4/protectedmemory.h>
-#include <ps4/extension/elfloader.h>
+#include <ps4/elfloader.h>
 #include <inttypes.h>
 #include "ps4link.h"
 #include "ps4link_internal.h"
 
+
+extern int ftp_initialized;
 typedef int (*Runnable)(int, char **);
 typedef struct MainAndMemory
 {
@@ -29,7 +34,8 @@ MainAndMemory mm;
 
 ScePthread elf_thid;
 
-
+int GID=-1;
+int UID=-1;
 
 #define BUF_SIZE 1024
 static char recvbuf[BUF_SIZE] __attribute__((aligned(16)));
@@ -86,7 +92,7 @@ void ps4LinkRunElf(Elf *elf)
 		return;
 	}
 	size = elfMemorySize(elf);
-	debugNetPrintf(DEBUG,"ps4ProtectedMemoryCreate(%zu) -> ", size);
+	debugNetPrintf(DEBUG,"ps4ProtectedMemoryCreate(%zu) ->\n ", size);
 	//mm->memory=ps4ProtectedMemoryCreate(size);
 	mm.memory=ps4ProtectedMemoryCreate(size);
 	
@@ -154,7 +160,7 @@ Elf * ps4LinkReadElfFromHost(char *path)
 {
 	int fd; //descriptor to manage file from host0
 	int filesize;//variable to control file size 
-	//uint8_t *buf=NULL;//buffer for read from host0 file
+	uint8_t *buf=NULL;//buffer for read from host0 file
 	Elf *elf;//elf to create from buf 
 	
 	//we open file in read only from host0 ps4sh include the full path with host0:/.......
@@ -179,7 +185,10 @@ Elf * ps4LinkReadElfFromHost(char *path)
 	ps4LinkLseek(fd,0,SEEK_SET);
 	//Reserve  memory for read buffer
 	//buf=malloc(filesize);
-	char buf[filesize];
+	//char buf[filesize];
+	buf=mmap(NULL, filesize, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+	
+	
 	//Read filsesize bytes to buf
 	int numread=ps4LinkRead(fd,buf,filesize);
 	//if we don't get filesize bytes we are in trouble
@@ -198,7 +207,9 @@ Elf * ps4LinkReadElfFromHost(char *path)
 	{
 		debugNetPrintf(DEBUG,"[PS4LINK] elf %s is not loadable\n",path);
 		//free(buf);
+		elfDestroy(elf);
 		elf = NULL;
+		
 	}
 	
 	
@@ -221,9 +232,106 @@ void ps4LinkCmdExecElf(ps4link_pkt_exec_cmd *pkg)
 	ps4LinkRunElf(elf);
 	return;
 }
+char *entryName(int entryType) {
+	switch(entryType) {
+		case DT_DIR: return "DIR";
+		case DT_REG: return "FILE";
+		default: return "OTHER";
+	}
+}
 void ps4LinkCmdExecSprx(ps4link_pkt_exec_cmd *pkg)
 {
 	debugNetPrintf(DEBUG,"[PS4LINK] Received command execsprx argc=%d argv=%s\n",ntohl(pkg->argc),pkg->argv);
+	
+	
+}
+void ps4LinkCmdExecWhoami(ps4link_pkt_exec_cmd *pkg)
+{
+	debugNetPrintf(DEBUG,"[PS4LINK] Received command execwhoami\n");
+	UID=getuid();
+	GID=getgid();
+	
+	debugNetPrintf(DEBUG,"[PS4LINK] UID: %d, GID: %d\n",UID,GID);
+		
+}
+void ps4LinkCmdExecShowDir(ps4link_pkt_exec_cmd *pkg)
+{
+	debugNetPrintf(DEBUG,"[PS4LINK] Received command execshowdir\n");
+	char *buffer;
+	struct dirent *dent;
+	struct stat stats;
+	int dfd;
+	int i;
+	if(UID==0 && GID==0 && pkg->argv!=NULL)
+	{
+		
+		dfd = open(pkg->argv, O_RDONLY, 0);
+		if(dfd < 0) {
+			debugNetPrintf(DEBUG, "Invalid directory.\n");
+			return;
+		}
+		int err=fstat(dfd, &stats);
+		if(err<0)
+		{
+			debugNetPrintf(DEBUG, "fstat error return  0x%08X \n",err);
+			return;
+		}
+		buffer=mmap(NULL, stats.st_blksize+sizeof(struct dirent), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+		if (buffer)
+		{
+			// Make sure we will have a null terminated entry at the end.Thanks people leaving CryEngine code for orbis on github  :)
+			for(i=0;i<stats.st_blksize+sizeof(struct dirent);i++)
+			{
+				buffer[i]=0;
+			}
+			err=getdents(dfd, buffer, stats.st_blksize);
+
+			int nOffset = err;
+			while (err > 0 && err < stats.st_blksize)
+			{
+				err = getdents(dfd, buffer + nOffset, stats.st_blksize-nOffset);
+				nOffset += err;
+			}
+			
+			if (err>0)
+				err=0;
+			
+			dent = (struct dirent *)buffer;
+			while(dent->d_fileno ) {
+					debugNetPrintf(DEBUG, "[%s]: %s\n", entryName(dent->d_type), dent->d_name);
+
+					dent = (struct dirent *)((void *)dent + dent->d_reclen);
+			}
+		}
+		munmap(buffer,stats.st_blksize+sizeof(struct dirent));
+		
+		
+		
+		
+
+		debugNetPrintf(DEBUG,"[PS4LINK] closing dfd\n");
+
+		err=close(dfd);  
+		if(err<0)
+		{
+				debugNetPrintf(DEBUG, "fstat error return  0x%08X \n",err);
+					return;
+		}
+	}
+	else
+	{
+		if(pkg->argv!=NULL)
+		{
+			debugNetPrintf(DEBUG,"Sorry you are not root , you must be root to run this...\n");
+		}
+		else
+		{
+			debugNetPrintf(DEBUG,"Sorry you must provide a ps4 directory path...\n");
+			
+		}
+	}
+	debugNetPrintf(DEBUG,"[PS4LINK] end command execshowdir\n");
+	
 }
 void ps4LinkCmdExit(ps4link_pkt_exec_cmd *pkg)
 {
@@ -323,6 +431,12 @@ int ps4link_commands_thread(void* args)
 				break;
 			case PS4LINK_EXIT_CMD:
 				ps4LinkCmdExit((ps4link_pkt_exec_cmd *)recvbuf);
+				break;
+			case PS4LINK_EXECWHOAMI_CMD:
+				ps4LinkCmdExecWhoami((ps4link_pkt_exec_cmd *)recvbuf);
+				break;
+			case PS4LINK_EXECSHOWDIR_CMD:
+				ps4LinkCmdExecShowDir((ps4link_pkt_exec_cmd *)recvbuf);
 				break;
 			default: 
 				debugNetPrintf(DEBUG,"[PS4LINK] Unknown command received\n");

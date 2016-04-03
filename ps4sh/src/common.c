@@ -226,6 +226,41 @@ int fix_cmd_arg(char *argv, const char *cmd, int *argvlen)
 	*argvlen = ac;
 	return argc;
 }
+int fix_cmd_arg_non_host(char *argv, const char *cmd, int *argvlen) 
+{
+	char arg[MAXPATHLEN];
+	int argc;
+	int ai, pi, ac;
+	ai = 0;
+	pi = 0;
+	ac = 0;
+	argc = 0;
+	while (cmd[pi]) 
+	{
+		while ((cmd[pi] != '\0') && (cmd[pi] != ' ')) 
+		{
+			pi++;
+		}
+		memcpy(arg, &cmd[ai], pi-ai);
+		arg[pi-ai] = '\0';
+			
+			memcpy(&argv[ac], arg, strlen(arg));
+			ac += strlen(arg);
+		
+		argv[ac] = '\0';
+		ac++;
+		ai = pi;
+		ai++;
+    
+		argc++;
+		while ((cmd[pi]) && (cmd[pi] == ' ')) 
+		{
+			pi++;
+		}
+	}
+	*argvlen = ac;
+	return argc;
+}
 
 int read_file(char *file, unsigned char *data, unsigned int size) 
 {

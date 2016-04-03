@@ -652,6 +652,17 @@ int cli_execsprx(char *arg)
     ps4link_command_exesprx(argc,argv,argvlen);
     return 0;
 }
+int cli_execpayload(char *arg)
+{
+    int ret;
+	char *newarg;
+    unsigned int argc, argvlen;
+    unsigned char argv[MAX_PATH];
+    argc = fix_cmd_arg(argv, arg, &argvlen);
+	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
+    ps4link_command_execpayload(argc,argv,argvlen);
+    return 0;
+}
 int cli_exitps4(char *arg)
 {
     int ret;
@@ -662,6 +673,29 @@ int cli_exitps4(char *arg)
 	debugNetPrintf(DEBUG,"argc=%d argv=%s\n",argc,argv);
     ps4link_command_exit(argc,argv,argvlen);
 	doloop=0;
+    return 0;
+}
+int cli_execwhoami(char *arg)
+{
+    int ret;
+	char *newarg;
+    unsigned int argc, argvlen;
+    unsigned char argv[MAX_PATH];
+    argc = fix_cmd_arg(argv, arg, &argvlen);
+	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
+    ps4link_command_execwhoami(argc,argv,argvlen);
+    return 0;
+}
+int cli_execshowdir(char *arg)
+{
+    int ret;
+	char *newarg;
+    unsigned int argc, argvlen;
+    unsigned char argv[MAX_PATH];
+	
+    argc = fix_cmd_arg_non_host(argv, arg, &argvlen);
+	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
+	ps4link_command_execshowdir(argc,argv,argvlen);
     return 0;
 }
 /*

@@ -360,6 +360,21 @@ int ps4link_command_exesprx(int argc,char *argv,int argvlen)
 	return ret;
 	
 } 
+int ps4link_command_execpayload(int argc,char *argv,int argvlen)
+{
+    struct { unsigned int number; unsigned short length; int argc; char argv[256]; } PACKED command;
+	int ret;
+    // Build the command packet.
+    command.number = htonl(PS4LINK_EXECPAYLOAD_CMD);
+    command.length = htons(sizeof(command));
+    command.argc   = htonl(argc);
+    memcpy(command.argv, argv, argvlen);
+    command.argv[argvlen] = '\0';
+    // Send the command packet.
+    ret=network_send(command_socket, &command, sizeof(command));
+	return ret;
+	
+} 
 int ps4link_command_exit(int argc,char *argv,int argvlen)
 {
     struct { unsigned int number; unsigned short length; int argc; char argv[256]; } PACKED command;
@@ -375,9 +390,37 @@ int ps4link_command_exit(int argc,char *argv,int argvlen)
 	return ret;
 	
 } 
+int ps4link_command_execwhoami(int argc,char *argv,int argvlen)
+{
+    struct { unsigned int number; unsigned short length; int argc; char argv[256]; } PACKED command;
+	int ret;
+    // Build the command packet.
+    command.number = htonl(PS4LINK_EXECWHOAMI_CMD);
+    command.length = htons(sizeof(command));
+    command.argc   = htonl(argc);
+    memcpy(command.argv, argv, argvlen);
+    command.argv[argvlen] = '\0';
+    // Send the command packet.
+    ret=network_send(command_socket, &command, sizeof(command));
+	return ret;
+	
+} 
+int ps4link_command_execshowdir(int argc,char *argv,int argvlen)
+{
+    struct { unsigned int number; unsigned short length; int argc; char argv[256]; } PACKED command;
+	int ret;
+    // Build the command packet.
+    command.number = htonl(PS4LINK_EXECSHOWDIR_CMD);
+    command.length = htons(sizeof(command));
+    command.argc   = htonl(argc);
+    memcpy(command.argv, argv, argvlen);
+    command.argv[argvlen] = '\0';
+    // Send the command packet.
+    ret=network_send(command_socket, &command, sizeof(command));
+	return ret;
+	
+} 
 
-
-//TODO
 //int ps4link_command_sample(void) 
 //{
 //	struct { unsigned int number; unsigned short length; } PACKED command;

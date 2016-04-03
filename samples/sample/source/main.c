@@ -4,8 +4,12 @@
  *  Repository https://github.com/psxdev/ps4link
  */
 #include <debugnet.h>
-#include <ps4link.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+
+
 
 
 
@@ -20,5 +24,5 @@ int main(int argc, char *argv[])
 	debugNetPrintf(DEBUG,"[SAMPLE] %d elfname=%s ps4linkconf=%s %p %d\n",argc,argv[0],argv[1],conf,conf->SocketFD);
 	debugNetFinish();
 	
-	while(1);
+	return EXIT_SUCCESS;
 }

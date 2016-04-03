@@ -18,15 +18,12 @@
 
 int main(void) {
 	
-	int handle;
 	int ret;
-	int count;
-	int index;
-	int modules[256];
 	
 	
 	signal(SIGPIPE, SIG_IGN);
-	
+	//debugNetInit("192.168.1.3",18197 , 3);
+	//kernelexec();
 	ret=ps4LinkInit("192.168.1.3",0x4711,0x4712,0x4712,DEBUG);
 	if(!ret)
 	{

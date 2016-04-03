@@ -110,9 +110,16 @@ int ps4link_response_rmdir(int result);
 #define PS4LINK_EXECELF_CMD 0xbabe0201
 #define	PS4LINK_EXECSPRX_CMD 0xbabe0202
 #define	PS4LINK_EXIT_CMD 0xbabe0203
+#define	PS4LINK_EXECPAYLOAD_CMD 0xbabe0204
+#define	PS4LINK_EXECWHOAMI_CMD 0xbabe0205
+#define	PS4LINK_EXECSHOWDIR_CMD 0xbabe0206
 
 
 int ps4link_command_execelf(int argc,char *argv,int argvlen);
+int ps4link_command_exesprx(int argc,char *argv,int argvlen);
+int ps4link_command_execpayload(int argc,char *argv,int argvlen);
+int ps4link_command_execwhoami(int argc,char *argv,int argvlen);
+int ps4link_command_execshowdir(int argc,char *argv,int argvlen);
 
 
 //////////////////////////////

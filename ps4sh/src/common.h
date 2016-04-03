@@ -65,6 +65,7 @@ char *trim(char *);
 char *stripwhite();
 char * dupstr(char *s);
 int fix_cmd_arg(char *argv, const char *cmd, int *argvlen);
+int fix_cmd_arg_non_host(char *argv, const char *cmd, int *argvlen);
 void read_pair(char *, char *, char *);
 int read_line(FILE *, char *);
 int get_home(char *);

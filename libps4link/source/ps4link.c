@@ -29,6 +29,7 @@ int ps4link_cmdio_active;*/
 
 ScePthread server_request_thid;
 ScePthread server_command_thid;
+//ScePthread server_payload_thid;
 
 ps4LinkConfiguration *configuration=NULL;
 
@@ -63,13 +64,29 @@ int ps4LinkInit(char *serverIp, int requestPort,int debugPort, int commandPort,i
 	configuration->ps4link_debug_port=commandPort;
 	
 	
-	
 	if(debugNetInit(serverIp,debugPort,level))
 	{
 		sleep(2);
 		
 		configuration->debugconf=debugNetGetConf();
 		
+		
+		/*	ret=scePthreadCreate(&server_payload_thid, NULL, payload_thread, NULL, "ps4link_request_server_thread");
+			if(ret==0)
+			{
+				debugNetPrintf(DEBUG,"[PS4LINK] Server payload thread UID: 0x%08X\n", server_payload_thid);
+			
+			}
+			else
+			{
+				debugNetPrintf(DEBUG,"[PS4LINK] Server payload thread could not create error: 0x%08X\n", ret);
+				scePthreadCancel(server_payload_thid);
+			
+			
+			}*/
+		
+		
+		//scePthreadJoin(server_payload_thid, NULL);
 		ret=scePthreadCreate(&server_request_thid, NULL, ps4link_requests_thread, NULL, "ps4link_request_server_thread");
 		
 
@@ -101,7 +118,16 @@ int ps4LinkInit(char *serverIp, int requestPort,int debugPort, int commandPort,i
 			return 0;
 		}
 	
-		
+		/*ret=scePthreadCancel(server_payload_thid);
+		if(ret==0)
+		{
+			debugNetPrintf(DEBUG,"[PS4LINK] Server payload thread terminated\n");
+		}
+		else
+		{
+			debugNetPrintf(DEBUG,"[PS4LINK] Server payload thread terminated error: 0x%08X\n", ret);
+			
+		}*/
 	
 		/*ps4link library initialized*/	
 	    configuration->ps4link_initialized = 1;

@@ -9,8 +9,8 @@ $(error Neither LIBPS4, LibPS4 nor libps4 set)
 endif
 
 target ?= ps4-elf
-libraries= -ldebugnet -lps4link
-targetfile=ps4link.elf
+libraries= -ldebugnet
+targetfile= payload.elf
 include $(LibPS4)/make/libps4.mk
 
 

@@ -102,6 +102,10 @@ int cli_status();
 int cli_execelf(char *arg);
 int cli_execsprx(char *arg);
 int cli_exitps4(char *arg);
+int cli_execpayload(char *arg);
+int cli_execwhoami(char *arg);
+int cli_execshowdir(char *arg);
+
 
 
 typedef struct {
@@ -112,7 +116,7 @@ typedef struct {
 
 COMMAND * find_command(char *);
 
-COMMAND commands[19] = {
+COMMAND commands[22] = {
     { "?", cli_help, "? :: Synonym for `help'." },
     { "cd", cli_cd, "cd [dir] :: Change ps4sh directory to [dir]." },
     { "debug", cli_debug, "debug :: Show ps4sh debug messages. ( alt-d )" },
@@ -126,10 +130,13 @@ COMMAND commands[19] = {
     { "pwd", cli_pwd, "pwd :: Print the current working directory ( alt-p )" },
     { "quit", cli_quit, "quit :: Quit pksh ( alt-q )" },
     { "setroot", cli_setroot, "setroot [dir] :: Sets [dir] to be root dir." },
-    { "status", cli_status, "status :: Display some pksh information. ( alt-s )" },
+    { "status", cli_status, "status :: Display some ps4sh information. ( alt-s )" },
     { "execelf", cli_execelf, "execelf :: Load and exec elf. ..." },
     { "execsprx", cli_execsprx, "execsprx :: Load and exec sprx. ..." },
     { "exitps4", cli_exitps4, "exitps4 :: Finish ps4link in ps4 side. ..." },
+    { "execpayload", cli_execpayload, "execpayload :: load payload in ps4 side. ..." },
+    { "execwhoami", cli_execwhoami, "execwhoami :: show uid and gid in ps4 side. ..." },
+    { "execshowdir", cli_execshowdir, "execshowdir :: list file from directory in ps4 side. ..." },
     { "verbose", cli_verbose, "verbose :: Show verbose pksh messages. ( alt-v )" },
 	{ (char *)NULL, (rl_icpfunc_t *)NULL, (char *)NULL }
 };
