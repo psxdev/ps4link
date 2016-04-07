@@ -615,7 +615,7 @@ PS4LINK FOR PS4
  
  ```
  
- 7) ready to have a lot of fun :P
+ 8) ready to have a lot of fun :P
  
 ===================
  What next?
