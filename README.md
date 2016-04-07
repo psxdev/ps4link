@@ -136,14 +136,20 @@ PS4LINK FOR PS4
   
  2) Declare variables and install libps4
   
-  ```
+  You can use a script with your environment variables. I like to use /usr/local/ps4dev/ps4dev.sh
+  its content is:
   
+  ```
   PS4DEV=/usr/local/ps4dev;export PS4DEV
   libps4=$PS4DEV/libps4;export libps4
   COMPILER=clang37;export COMPILER
+  ```
   
   
+  ```
   cd /usr/local/ps4dev
+  mkdir git
+  cd git
   git clone http://github.com/ps4dev/libps4
   cd libps4
   make
@@ -155,14 +161,13 @@ PS4LINK FOR PS4
   
  3) PS4link
   
-  Customize your ip configuration if you need
   
   ```
   cd /usr/local/ps4dev/git
   git clone http://github.com/psxdev/ps4link
   cd ps4link
   ```
-  compile and instal libdebugnet it will let udp logging to your elfs:
+  compile and instal libdebugnet it will let to use udp logging to your own elf files and libraries:
   
   ```
   cd libdebugnet
@@ -171,7 +176,7 @@ PS4LINK FOR PS4
   cd ../..
   ```
   
-  compile and install libps4link it will let fio host and commands support(elf loader soon inside)
+  compile and install libps4link it will let fio host requests and commands support
   
   ```
   cd libps4link
@@ -179,51 +184,114 @@ PS4LINK FOR PS4
   make install
   ```
   
+  Customize your pc/mac ip configuration if you need in /usr/local/ps4dev/git/ps4link/ps4link/source/main.c in ps4LinkInit call. You must use your pc/mac ip configuration in first parameter.
+  
   
   create ps4link loader based on elfldr 
   
   ```
-  cd ../..
-  git clone http://github.com/ps4dev/elfldr
+  cd ../
+  ls
+  LICENSE		elfldr		libps4link	ps4sh
+  README.md	libdebugnet	ps4link		samples
   cd elfldr
-  mkdir -p elfldr/ps4link/source
-  mkdir -p elfldr/ps4link/include
-  cp -r elfldr/ps4/ldrgen elfldr/ps4link
-  cp ps4link/libdebugnet/include/*.h elfldr/ps4link/include
-  cp ps4link/libdebugnet/source/*.c elfldr/ps4link/source
-  cp ps4link/libps4link/include/*.h elfldr/ps4link/include
-  cp ps4link/libps4link/source/*.c elfldr/ps4link/source
-  cp ps4link/ps4link/source/main.c elfldr/ps4link/source
-  cp elfldr/ps4/Makefile elfldr/ps4link
-  cd elfldr/ps4link
+  ./copy_ps4link_sources.sh
   make
   ```
-  Now you have a ldr.js file in eldldr/local/js with ps4link embed in it.
+  Now you have a ldr.js file in /usr/local/ps4dev/git/ps4link/elfldr/local/ldr with ps4link embed in it.
   
-  You need to load from ps4browser content from directory local. 
+  To run webkit exploit you will need load index.html from directory local. Publish content from directory local in your web server or:
   
+  ```
+  cd /usr/local/ps4dev/git/ps4link/eldldr/local
+  node server.js
+  Serving directory /usr/local/ps4dev/git/ps4link/elfldr/local on port 5350
+  ```
   
+  Now you have ready to run ps4link from your PlayStation 4
   
  4) Compile ps4sh
  
-  ps4sh will let you speak with ps4link, unset path variables added for your environment in osx to use native compiler it is a host tool. It is based on pksh tools that we used in ps2dev days and credit goes to all people involved in its developments greets to all of them.
+  ps4sh will let you speak with ps4link. It is based on pksh tools that we used in ps2dev days and credit goes to all people involved in its developments, greets to all of them.
+  
+  change dst_ip for your PlayStation 4 ip at /usr/local/ps4dev/git/ps4link/ps4sh/src/ps4sh.c
   
   ```
   cd /usr/local/ps4dev/git/ps4link/ps4sh
   make
   ```
 
- 5) Load content from elfldr/local directory in your ps4
-   
-  at stage 5 you will have ps4link waiting for commands
+ 5) Compile samples :)
+  3 samples are included sample, payload and ps4ftp
   
- 6) Session example using ps4link like full ldr instead of default loader in elfldr
+  sample is a very basic example it will receive debugnet conf from our ps4link, display some messages and exit.
+  
+  payload is a dlclose poc, it will give you root privileges, prison break and full file access and exit. After load it ps4link will have uid and gid 0 , use it under your own risk
+  
+  ps4ftp is based on xerpi ftp code and it will be give you and ftp server in your PlayStation 4, it can run with your game running :P at the same time if you load after payload.elf
+  
+  let's go to compile our elf samples
+  
+  ```
+  cd /usr/local/ps4dev/git/ps4link/samples
+  cd sample
+  make
+  cp bin/sample.elf /usr/local/ps4dev/git/ps4link/ps4sh/bin
+  cd ..
+  cd payload
+  make
+  cp bin/payload.elf /usr/local/ps4dev/git/ps4link/ps4sh/bin
+  cd ..
+  cd ps4ftp
+  make
+  cp bin/ps4ftp.elf /usr/local/ps4dev/git/ps4link/ps4sh/bin
  
- First to see initial logs
+  ```
+  
+  Ok our samples elf files are ready to use in your PlayStation 4, switch on your console :)
+  
+ 6) Webkit ps4link loader
+ 
+  First to see initial logs execute in your pc/mac
+  ```  
+  socat udp-recv:18194 stdout
+  ``` 
+  Open your PlayStation 4 browser. Open you local directory content, for example if you use node server.js option use the following url:
+ 
+  ```
+  http://ipofyourserver:5350
+  ```   
+  at stage 5 you will have ps4link waiting for commands and you will see output in yout mac/pc
+  
+  ```
+  [PS4][INFO]: debugnet initialized
+  [PS4][INFO]: Copyright (C) 2010,2016 Antonio Jose Ramos Marquez aka bigboss @psxdev
+  [PS4][INFO]: ready to have a lot of fun...
+  [PS4][DEBUG]: [PS4LINK] Server request thread UID: 0x810CF440
+  [PS4][DEBUG]: [PS4LINK] Server command thread UID: 0x8111E640
+  [PS4][DEBUG]: [PS4LINK] Created ps4link_requests_sock: 85
+  [PS4][DEBUG]: [PS4LINK] bind to ps4link_requests_sock done
+  [PS4][DEBUG]: [PS4LINK] Ready for connection 1
+  [PS4][DEBUG]: [PS4LINK] Waiting for connection
+  [PS4][DEBUG]: [PS4LINK] Command Thread Started.
+  [PS4][DEBUG]: [PS4LINK] Created ps4link_commands_sock: 87
+  [PS4][DEBUG]: [PS4LINK] Command listener waiting for commands...
+  ^C
+  ```
+  
+  You are ready to load your elf files...
+  
+  Next step show you a full session executing commands and loading samples.
+  
+ 7) Session example using ps4link 
+ 
+ First to see initial logs before open url in PlayStation 4 browser
+ 
  ```  
  socat udp-recv:18194 stdout
  ```
- after load ps4link on ps4 browser we will see log from debugnet library 
+ 
+ after load ps4link on ps4 we will see logs from debugnet library and information about threads created by ps4link
  
  ```
  [PS4][INFO]: debugnet initialized
@@ -240,12 +308,14 @@ PS4LINK FOR PS4
  [PS4][DEBUG]: [PS4LINK] Command listener waiting for commands...
  ^C
  ```
+ 
  Now it's time to use ps4sh tool from mac/pc. Close socat with control-c
  
  
  
- ``` 
- $ ps4sh
+ ```
+ cd /usr/local/ps4dev/git/ps4link/ps4sh/bin 
+ ./ps4sh
  ps4sh version 1.0
  /Users/bigboss/.ps4shrc: No such file or directory
  Connecting to fio ps4link ip 192.168.1.17
@@ -555,7 +625,7 @@ PS4LINK FOR PS4
 ===================
  Last Changes
 ===================
-  
+  - Added custom elfldr and fixed readme information
   - Added commands execwhoami and execshowdir
   - Added ftp server in sample ps4ftp. You can use execelf ps4ftp.elf
   - Added dlclose poc in sample payload. You can use execelf payload.elf

