@@ -149,6 +149,7 @@ PS4LINK FOR PS4
   ```
   cd /usr/local/ps4dev
   mkdir git
+  mkdir libps4
   cd git
   git clone http://github.com/ps4dev/libps4
   cd libps4
