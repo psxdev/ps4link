@@ -226,9 +226,9 @@ PS4LINK FOR PS4
   
   sample is a very basic example it will receive debugnet conf from our ps4link, display some messages and exit.
   
-  payload is a dlclose poc, it will give you root privileges, prison break and full file access and exit. After load it ps4link will have uid and gid 0 , use it under your own risk
+  payload is a dlclose poc, it will give you root privileges, prison break and full file access and exit. After load it ps4link will have uid and gid 0 , WARNING use it under your own risk
   
-  ps4ftp is based on xerpi ftp code and it will be give you and ftp server in your PlayStation 4, it can run with your game running :P at the same time if you load after payload.elf
+  ps4ftp is based on xerpi ftp code and it will be give you a ftp server in your PlayStation 4, it can run with your game running :P at the same time if you load after payload.elf
   
   let's go to compile our elf samples
   
