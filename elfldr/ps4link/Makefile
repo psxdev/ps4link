@@ -19,7 +19,7 @@ TargetFile := ldr
 
 ifeq ($(target), ps4-lib)
 	TargetFile := libps4link
-	SourceFilesCForce := source/ps4link.c source/request.c source/commands.c source/debugnet.c source/elfloader.c
+	SourceFilesCForce := source/ps4link.c source/request.c source/commands.c source/debugnet.c 
 	Libraries :=  -lps4
 	ldrgen := false
 endif

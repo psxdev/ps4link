@@ -104,11 +104,11 @@ void ps4LinkRunElf(Elf *elf)
 		
 		return;
 	}
-	//debugNetPrintf(DEBUG,"[PS4LINK] elfLoaderLoad(%p, %p, %p) -> \n", (void *)elf, ps4ProtectedMemoryWritable(mm->memory), ps4ProtectedMemoryExecutable(mm->memory));
-	debugNetPrintf(DEBUG,"[PS4LINK] elfLoaderLoad(%p, %p, %p) -> \n", (void *)elf, ps4ProtectedMemoryWritable(mm.memory), ps4ProtectedMemoryExecutable(mm.memory));
+	//debugNetPrintf(DEBUG,"[PS4LINK] elfLoaderLoad(%p, %p, %p) -> \n", (void *)elf, ps4ProtectedMemoryWritableAddress(mm->memory), ps4ProtectedMemoryExecutableAddress(mm->memory));
+	debugNetPrintf(DEBUG,"[PS4LINK] elfLoaderLoad(%p, %p, %p) -> \n", (void *)elf, ps4ProtectedMemoryWritableAddress(mm.memory), ps4ProtectedMemoryExecutableAddress(mm.memory));
 	
-	//ret = elfLoaderLoad(elf, ps4ProtectedMemoryWritable(mm->memory), ps4ProtectedMemoryExecutable(mm->memory));
-	ret = elfLoaderLoad(elf, ps4ProtectedMemoryWritable(mm.memory), ps4ProtectedMemoryExecutable(mm.memory));
+	//ret = elfLoaderLoad(elf, ps4ProtectedMemoryWritableAddress(mm->memory), ps4ProtectedMemoryExecutableAddress(mm->memory));
+	ret = elfLoaderLoad(elf, ps4ProtectedMemoryWritableAddress(mm.memory), ps4ProtectedMemoryExecutableAddress(mm.memory));
 	
 	if(ret<0)
 	{
@@ -120,8 +120,8 @@ void ps4LinkRunElf(Elf *elf)
 	else
 	{
 		debugNetPrintf(DEBUG,"[PS4LINK] elfLoaderLoad return %i\n", ret);
-	//	mm->main = (Runnable)((uint8_t *)ps4ProtectedMemoryExecutable(mm->memory) + elfEntry(elf));
-		mm.main = (Runnable)((uint8_t *)ps4ProtectedMemoryExecutable(mm.memory) + elfEntry(elf));
+	//	mm->main = (Runnable)((uint8_t *)ps4ProtectedMemoryExecutableAddress(mm->memory) + elfEntry(elf));
+		mm.main = (Runnable)((uint8_t *)ps4ProtectedMemoryExecutableAddress(mm.memory) + elfEntry(elf));
 		
 	//	debugNetPrintf(DEBUG,"[PS4LINK] mm->main %p \n", mm->main);
 		debugNetPrintf(DEBUG,"[PS4LINK] mm->main %p \n", mm.main);
@@ -134,8 +134,8 @@ void ps4LinkRunElf(Elf *elf)
 	
 	if(mm.main != NULL)
 	{
-	//	debugNetPrintf(DEBUG,"PS4LINK run [%p + elfEntry = %p]\n", ps4ProtectedMemoryExecutable(mm->memory), (void *)mm->main);
-		debugNetPrintf(DEBUG,"PS4LINK run [%p + elfEntry = %p]\n", ps4ProtectedMemoryExecutable(mm.memory), (void *)mm.main);
+	//	debugNetPrintf(DEBUG,"PS4LINK run [%p + elfEntry = %p]\n", ps4ProtectedMemoryExecutableAddress(mm->memory), (void *)mm->main);
+		debugNetPrintf(DEBUG,"PS4LINK run [%p + elfEntry = %p]\n", ps4ProtectedMemoryExecutableAddress(mm.memory), (void *)mm.main);
 		//ret=scePthreadCreate(&elf_thid, NULL, ps4LinkRunElfMain, mm, "elf_thid");
 		
 		ret=scePthreadCreate(&elf_thid, NULL, ps4LinkRunElfMain, &mm, "elf_thid");
