@@ -13,53 +13,8 @@
 #include <sys/stat.h>
 
 #include <netinet/in.h>
-
 #include "util.h"
 
-void utilStandardIORedirect(int to, int stdfd[3], fpos_t stdpos[3])
-{
-	int stdid[3] = {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO};
-	FILE *stdf[3] = {stdin, stdout, stderr};
-	int i;
-
-	if(stdfd == NULL || stdpos == NULL)
-		return;
-
-	for(i = 0; i < 3; ++i)
-	{
-		fflush(stdf[i]);
-		fgetpos(stdf[i], &stdpos[i]);
-
-		stdfd[i] = dup(stdid[i]);
-		close(stdid[i]);
-		dup(to);
-
-		clearerr(stdf[i]);
-		setbuf(stdf[i], NULL);
-	}
-}
-
-void utilStandardIOReset(int stdfd[3], fpos_t stdpos[3])
-{
-	int stdid[3] = {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO};
-	FILE *stdf[3] = {stdin, stdout, stderr};
-	int i;
-
-	if(stdfd == NULL || stdpos == NULL)
-		return;
-
-	for(i = 0; i < 3; ++i)
-	{
-		fflush(stdf[i]);
-
-		close(stdid[i]);
-		dup(stdfd[i]);
-		close(stdfd[i]);
-
-		fsetpos(stdf[i], &stdpos[i]);
-		clearerr(stdf[i]);
-	}
-}
 
 FILE *fddupopen(int fd, const char *mode)
 {
@@ -78,57 +33,6 @@ FILE *fddupopen(int fd, const char *mode)
 	return r;
 }
 
-int utilServerCreate(int port, int backlog, int try, unsigned int sec)
-{
-	int server;
-	struct sockaddr_in serverAddress;
-	int r;
-
-	memset(&serverAddress, 0, sizeof(serverAddress));
-	#ifdef __FreeBSD__ //parent of our __PS4__
-	serverAddress.sin_len = sizeof(serverAddress);
-	#endif
-	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-	serverAddress.sin_port = htons(port);
-
-	for(; try > 0; --try)
-	{
-		server = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if(server < 0)
-			sleep(sec);
-	}
-
-	if(server < 0)
-		return -1;
-
-	setsockopt(server, SOL_SOCKET, SO_REUSEADDR, (char *)&(int){ 1 }, sizeof(int));
-	setsockopt(server, SOL_SOCKET, SO_REUSEPORT, (char *)&(int){ 1 }, sizeof(int));
-
-	if((r = bind(server, (struct sockaddr *)&serverAddress, sizeof(serverAddress))) < 0)
-	{
-		close(server);
-		return -2;
-	}
-
-	if((r = listen(server, backlog)) < 0)
-	{
-		close(server);
-		return -3;
-	}
-
-	return server;
-}
-
-int utilSingleAcceptServer(int port)
-{
-	int server, client;
-	if((server = utilServerCreate(port, 1, 20, 1)) < 0)
-		return server;
-	client = accept(server, NULL, NULL); // either return is fine
-	close(server);
-	return client;
-}
 
 void *utilAllocUnsizeableFileFromDescriptor(int fd, size_t *size)
 {
