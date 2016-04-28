@@ -16,11 +16,11 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-#include <ps4/protectedmemory.h>
-#include <ps4/elfloader.h>
+#include <ps4/memory/protected.h>
 #include <inttypes.h>
 #include "ps4link.h"
 #include "ps4link_internal.h"
+#include "elfloader.h"
 
 
 extern int ftp_initialized;
@@ -28,7 +28,7 @@ typedef int (*Runnable)(int, char **);
 typedef struct MainAndMemory
 {
 	Runnable main;
-	PS4ProtectedMemory *memory;
+	Ps4MemoryProtected *memory;
 }MainAndMemory;
 MainAndMemory mm;
 
@@ -63,7 +63,7 @@ void *ps4LinkRunElfMain()
 	//mm = (MainAndMemory *)mainAndMemory;
 	ret = mm.main(elfArgc, elfArgv);
 	debugNetPrintf(DEBUG,"[PS4LINK] ps4LinkRunElfMain mm->main return %i\n", ret);
-	ps4ProtectedMemoryDestroy(mm.memory);	
+	ps4MemoryProtectedDestroy(mm.memory);	
 	//free(mm);
 	return NULL;	
 }
@@ -94,8 +94,8 @@ void ps4LinkRunElf(Elf *elf)
 	size = elfMemorySize(elf);
 	debugNetPrintf(DEBUG,"ps4ProtectedMemoryCreate(%zu) ->\n ", size);
 	//mm->memory=ps4ProtectedMemoryCreate(size);
-	mm.memory=ps4ProtectedMemoryCreate(size);
-	
+	//mm.memory=ps4MemoryProtectedCreate(size);
+	ps4MemoryProtectedCreate(&mm.memory, size);
 	//if(!mm->memory)
 	if(!mm.memory)	
 	{
@@ -105,10 +105,10 @@ void ps4LinkRunElf(Elf *elf)
 		return;
 	}
 	//debugNetPrintf(DEBUG,"[PS4LINK] elfLoaderLoad(%p, %p, %p) -> \n", (void *)elf, ps4ProtectedMemoryWritableAddress(mm->memory), ps4ProtectedMemoryExecutableAddress(mm->memory));
-	debugNetPrintf(DEBUG,"[PS4LINK] elfLoaderLoad(%p, %p, %p) -> \n", (void *)elf, ps4ProtectedMemoryWritableAddress(mm.memory), ps4ProtectedMemoryExecutableAddress(mm.memory));
+	debugNetPrintf(DEBUG,"[PS4LINK] elfLoaderLoad(%p, %p, %p) -> \n", (void *)elf, ps4MemoryProtectedGetWritableAddress(mm.memory), ps4MemoryProtectedGetExecutableAddress(mm.memory));
 	
 	//ret = elfLoaderLoad(elf, ps4ProtectedMemoryWritableAddress(mm->memory), ps4ProtectedMemoryExecutableAddress(mm->memory));
-	ret = elfLoaderLoad(elf, ps4ProtectedMemoryWritableAddress(mm.memory), ps4ProtectedMemoryExecutableAddress(mm.memory));
+	ret = elfLoaderLoad(elf, ps4MemoryProtectedGetWritableAddress(mm.memory), ps4MemoryProtectedGetExecutableAddress(mm.memory));
 	
 	if(ret<0)
 	{
@@ -121,7 +121,7 @@ void ps4LinkRunElf(Elf *elf)
 	{
 		debugNetPrintf(DEBUG,"[PS4LINK] elfLoaderLoad return %i\n", ret);
 	//	mm->main = (Runnable)((uint8_t *)ps4ProtectedMemoryExecutableAddress(mm->memory) + elfEntry(elf));
-		mm.main = (Runnable)((uint8_t *)ps4ProtectedMemoryExecutableAddress(mm.memory) + elfEntry(elf));
+		mm.main = (Runnable)((uint8_t *)ps4MemoryProtectedGetExecutableAddress(mm.memory) + elfEntry(elf));
 		
 	//	debugNetPrintf(DEBUG,"[PS4LINK] mm->main %p \n", mm->main);
 		debugNetPrintf(DEBUG,"[PS4LINK] mm->main %p \n", mm.main);
@@ -135,7 +135,7 @@ void ps4LinkRunElf(Elf *elf)
 	if(mm.main != NULL)
 	{
 	//	debugNetPrintf(DEBUG,"PS4LINK run [%p + elfEntry = %p]\n", ps4ProtectedMemoryExecutableAddress(mm->memory), (void *)mm->main);
-		debugNetPrintf(DEBUG,"PS4LINK run [%p + elfEntry = %p]\n", ps4ProtectedMemoryExecutableAddress(mm.memory), (void *)mm.main);
+		debugNetPrintf(DEBUG,"PS4LINK run [%p + elfEntry = %p]\n", ps4MemoryProtectedGetExecutableAddress(mm.memory), (void *)mm.main);
 		//ret=scePthreadCreate(&elf_thid, NULL, ps4LinkRunElfMain, mm, "elf_thid");
 		
 		ret=scePthreadCreate(&elf_thid, NULL, ps4LinkRunElfMain, &mm, "elf_thid");
