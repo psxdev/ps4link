@@ -1,16 +1,18 @@
-ifdef libps4
-LibPS4 := $(libps4)
+ifndef Ps4Sdk
+ifdef ps4sdk
+Ps4Sdk := $(ps4sdk)
 endif
-ifdef LIBPS4
-LibPS4 := $(LIBPS4)
+ifdef PS4SDK
+Ps4Sdk := $(PS4SDK)
 endif
-ifndef LibPS4
-$(error Neither LIBPS4, LibPS4 nor libps4 set)
+ifndef Ps4Sdk
+$(error Neither PS4SDK, Ps4Sdk nor ps4sdk set)
+endif
 endif
 
-target ?= ps4-elf
-libraries= -ldebugnet -lps4link
-targetfile=sample.elf
-include $(LibPS4)/make/libps4.mk
+target ?= ps4_elf
+TargetFile=sample.elf
 
+include $(Ps4Sdk)/make/ps4sdk.mk
+LinkerFlags+=-ldebugnet -lps4link -lSceNet_stub
 
