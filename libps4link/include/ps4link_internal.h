@@ -139,10 +139,10 @@ typedef struct
     char name[256];
 } __attribute__((packed)) ps4link_pkt_dread_rly;
 
-#define PS4LINK_EXECELF_CMD 0xbabe0201
-#define	PS4LINK_EXECSPRX_CMD 0xbabe0202
+#define PS4LINK_EXECUSER_CMD 0xbabe0201
+#define	PS4LINK_EXECKERNEL_CMD 0xbabe0202
 #define	PS4LINK_EXIT_CMD 0xbabe0203
-#define	PS4LINK_EXECPAYLOAD_CMD 0xbabe0204
+#define	PS4LINK_EXECDECRYPT_CMD 0xbabe0204
 #define	PS4LINK_EXECWHOAMI_CMD 0xbabe0205
 #define	PS4LINK_EXECSHOWDIR_CMD 0xbabe0206
 
@@ -161,7 +161,7 @@ typedef struct
 #define PS4LINK_MAX_WRITE_SEGMENT (1460 - sizeof(ps4link_pkt_write_req))  //1460
 #define PS4LINK_MAX_READ_SEGMENT  (1460 - sizeof(ps4link_pkt_read_rly)) //1460
 
-int ps4link_requests_thread(void *args);
-int ps4link_commands_thread(void *args);
+void *ps4link_requests_thread(void *args);
+void *ps4link_commands_thread(void *args);
 
 #endif

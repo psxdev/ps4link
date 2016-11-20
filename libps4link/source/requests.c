@@ -12,6 +12,7 @@
 #include <debugnet.h>
 #include <net.h>
 #include <sys/socket.h>
+#include <string.h>
 
 #include "ps4link.h"
 #include "ps4link_internal.h"
@@ -252,10 +253,10 @@ int ps4LinkRead(int fd, void *data, size_t size)
 
 	readbytes = 0;
 
-	if (size < 0) {
+	/*if (size < 0) {
 		debugNetPrintf(DEBUG,"[PS4LINK] ps4link_read_file: illegal req!! (whish to read < 0 bytes!)\n");
 		return -1;
-	}
+	}*/
 
 	readcmd->nbytes = sceNetHtonl(size);
 
@@ -619,7 +620,7 @@ int ps4LinkDclose(int fd)
 
 	return sceNetNtohl(closerly->retval);
 }
-int ps4link_requests_thread(void * args)
+void *ps4link_requests_thread(void * args)
 {
 	int ret;
 	struct sockaddr_in serveraddr;
@@ -645,7 +646,7 @@ int ps4link_requests_thread(void * args)
 	{
 		debugNetPrintf(DEBUG,"[PS4LINK] sceNetBind error: 0x%08X\n", ret);
 		sceNetSocketClose(ps4LinkGetValue(REQUESTS_SOCK));
-		return -1;
+		return NULL;
 	}
 	debugNetPrintf(DEBUG,"[PS4LINK] bind to ps4link_requests_sock done\n");
 	
@@ -655,7 +656,7 @@ int ps4link_requests_thread(void * args)
 	{
 		debugNetPrintf(DEBUG,"[PS4LINK] sceNetListen error: 0x%08X\n", ret);
 		sceNetSocketClose(ps4LinkGetValue(REQUESTS_SOCK));
-		return -1;
+		return NULL;
 	}
 	
 	
@@ -715,5 +716,5 @@ int ps4link_requests_thread(void * args)
 	
 	
 	//sceKernelExitDeleteThread(0);
-	return 0;
+	return NULL;
 }

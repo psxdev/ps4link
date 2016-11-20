@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <ps4link.h>
 #include <debugnet.h>
-#include <signal.h>
+//#include <signal.h>
 
 
 int main(void) {
@@ -21,9 +21,7 @@ int main(void) {
 	int ret;
 	
 	
-	signal(SIGPIPE, SIG_IGN);
-	//debugNetInit("192.168.1.3",18197 , 3);
-	//kernelexec();
+	//signal(SIGPIPE, SIG_IGN);
 	ret=ps4LinkInit("192.168.1.3",0x4711,0x4712,0x4712,DEBUG);
 	if(!ret)
 	{

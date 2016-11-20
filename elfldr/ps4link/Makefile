@@ -1,99 +1,49 @@
 ###################################
 
-ifdef libps4
-LibPS4 := $(libps4)
+ifndef Ps4Sdk
+ifdef ps4sdk
+Ps4Sdk := $(ps4sdk)
 endif
-ifdef LIBPS4
-LibPS4 := $(LIBPS4)
+ifdef PS4SDK
+Ps4Sdk := $(PS4SDK)
 endif
-ifndef LibPS4
-$(error Neither LIBPS4, LibPS4 nor libps4 set)
+ifndef Ps4Sdk
+$(error Neither PS4SDK, Ps4Sdk nor ps4sdk set)
+endif
 endif
 
-target ?= ps4-bin
+target ?= ps4_bin
 
 ldr ?= elf
 ldrgen ?= true
 
 TargetFile := ldr
 
-ifeq ($(target), ps4-lib)
-	TargetFile := libps4link
-	SourceFilesCForce := source/ps4link.c source/request.c source/commands.c source/debugnet.c 
-	Libraries :=  -lps4
-	ldrgen := false
-endif
-
-include $(LibPS4)/make/libps4.mk
+include $(Ps4Sdk)/make/ps4sdk.mk
+LinkerFlags+=-lSceNet_stub
 
 ###################################
 
 ifeq ($(ldr), bin)
-	CompilerFlags += -DBinaryLoader
+	CompilerFlags += -DBinaryLoader 
 endif
 
-ifeq ($(server), true)
-	CompilerFlags += -DElfLoaderServer
-endif
-
-ifeq ($(memory), emulate)
-	CompilerFlags += -DElfLoaderEmulatePS4Memory
-endif
-
-ifeq ($(threading), true)
-	CompilerFlags += -DElfLoaderThreading
-endif
-
-ifeq ($(stdio), none)
-	CompilerFlags += -DElfLoaderStandardIORedirectNone
-endif
-ifeq ($(stdio), lazy)
-	CompilerFlags += -DElfLoaderStandardIORedirectLazy
-endif
-ifeq ($(stdio), wait)
-	CompilerFlags += -DElfLoaderStandardIORedirectWait
-endif
-
-ifeq ($(target), x86-64)
-	Libraries += -lrt -lpthread
-endif
 
 ###################################
 
-compileAndLinkLdrGen = $(Compiler) $? -std=c11 -O3 -Wall -pedantic -Iinclude -o $@
+compileAndLinkLdrGen = gcc $? -std=c11 -O3 -Wall -pedantic -Iinclude -o $@
 
 ###################################
 
-Payload ?= 0x926400000
-# Binary loader mem layout.
-# text#[data#d-payload-area]
-# ^     ^   #paycode#paydata
-# |-----|-------x      x
-#       |--------------|
-# allows binldr to use data
-
-###################################
-
-CompilerFlags += -DPayload=$(Payload)
-
-###################################
-
-$(OutPath)/$(TargetFile).a: $(ObjectFiles)
-	$(dirp)
-	$(archive)
 
 .PHONY:: ldrgen
 
 $(OutPath)/ldrgen: ldrgen/main.c ldrgen/util.c
-ifeq ($(target), ps4-bin)
+ifeq ($(target), ps4_bin)
 ifneq ($(ldrgen), false)
 	$(dirp)
 	$(compileAndLinkLdrGen)
-ifeq ($(ldr), elf)
-	$(OutPath)/ldrgen Elf $(OutPath)/ldr ../local/ldr/ldr.js
-else
 	$(OutPath)/ldrgen Bin $(OutPath)/ldr ../local/ldr/ldr.js
-endif
 endif
 endif
 

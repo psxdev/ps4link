@@ -100,7 +100,7 @@ char * trim(char *s)
 		{
 			break;
 		}
-		*s++;
+		s++;
 		len--;
 	}
 	s[i] = '\0';
@@ -118,7 +118,8 @@ char * dupstr(char *s)
 char * stripwhite(char *string)
 {
 	register char *s, *t;
-	for (s = string; whitespace(*s); s++);
+	for (s = string; whitespace(*s); s++)
+		;
 
  	if (*s == 0) 
 	{
@@ -192,7 +193,7 @@ int fix_cmd_arg(char *argv, const char *cmd, int *argvlen)
 		}
 		memcpy(arg, &cmd[ai], pi-ai);
 		arg[pi-ai] = '\0';
-		if ( is_file(arg) != NULL ) 
+		if ( is_file(arg) != 0 ) 
 		{
 			if ( !arg_device_check(arg) ) 
 			{
@@ -294,7 +295,7 @@ static int is_file(char *file)
 
 void split_filename(char *device, char *dir, char *filename, const char *arg) 
 {
-	char *ptr;
+	const char *ptr;
 	memset(device, 0, MAXPATHLEN);
 	memset(dir, 0, MAXPATHLEN);
 	memset(filename, 0, MAXPATHLEN);
@@ -303,18 +304,18 @@ void split_filename(char *device, char *dir, char *filename, const char *arg)
 	{
 		if ( (ptr - arg) > MAXPATHLEN ) 
 		{
-			device[0] = NULL;
+			device[0] = '\0';
 		} 
 		else 
 		{
 			strncpy(device, arg, ptr-arg+1);
-			device[ptr-arg+1] = NULL;
+			device[ptr-arg+1] = '\0';
 		}
 		ptr++;
 	} 
 	else 
 	{
-		device[0] = NULL;
+		device[0] = '\0';
 		ptr = arg;
 	}
 	// check for dir part

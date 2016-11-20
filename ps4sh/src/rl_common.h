@@ -49,12 +49,12 @@ extern char **environ;
 int filename_completion_ignore(char **);
 llist path_split(char *);
 int execute_line(char *);
-char * command_generator(char *, int);
-char ** command_completion(char *, int , int);
+char * command_generator(const char *, int);
+char ** command_completion(const char *, int , int);
 int change_prompt(void);
 char *get_prompt(void);
 char *log_prompt(void);
 int write_log_line(char *buf);
-void cli_handler(void);
+void cli_handler(char *none);
 void common_set_suffix(llist);
 #endif

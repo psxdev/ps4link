@@ -23,6 +23,7 @@
 
 #ifndef _WIN32
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #else
 #include <windows.h>
@@ -193,7 +194,9 @@ int ps4link_log_listener(char *src_ip, int port)
 int ps4link_fio_listener(char *dst_ip, int port, int timeout) 
 {
 	int addr_size = sizeof(struct sockaddr_in);
-	int len, flags, ret, error;
+	int  flags=0;
+	int ret, error;
+	unsigned int len;
 	struct sockaddr_in addr;
 	struct timeval time;
 	fd_set rset, wset;
@@ -270,7 +273,8 @@ done:
 
 int ps4link_srv_setup(char *src_ip, int port) 
 {
-	int flags, ret, fd;
+	int flags=0;
+	int ret, fd;
 	struct sockaddr_in addr;
 	int backlog = 10;
 	int yes = 1;
@@ -330,12 +334,12 @@ int ps4link_set_path(char *p)
 // PS4LINK COMMAND FUNCTIONS //
 ////////////////////////////////
 
-int ps4link_command_execelf(int argc,char *argv,int argvlen)
+int ps4link_command_execuser(int argc,char *argv,int argvlen)
 {
     struct { unsigned int number; unsigned short length; int argc; char argv[256]; } PACKED command;
 	int ret;
     // Build the command packet.
-    command.number = htonl(PS4LINK_EXECELF_CMD);
+    command.number = htonl(PS4LINK_EXECUSER_CMD);
     command.length = htons(sizeof(command));
     command.argc   = htonl(argc);
     memcpy(command.argv, argv, argvlen);
@@ -345,12 +349,12 @@ int ps4link_command_execelf(int argc,char *argv,int argvlen)
 	return ret;
 	
 } 
-int ps4link_command_exesprx(int argc,char *argv,int argvlen)
+int ps4link_command_execkernel(int argc,char *argv,int argvlen)
 {
     struct { unsigned int number; unsigned short length; int argc; char argv[256]; } PACKED command;
 	int ret;
     // Build the command packet.
-    command.number = htonl(PS4LINK_EXECSPRX_CMD);
+    command.number = htonl(PS4LINK_EXECKERNEL_CMD);
     command.length = htons(sizeof(command));
     command.argc   = htonl(argc);
     memcpy(command.argv, argv, argvlen);
@@ -360,12 +364,12 @@ int ps4link_command_exesprx(int argc,char *argv,int argvlen)
 	return ret;
 	
 } 
-int ps4link_command_execpayload(int argc,char *argv,int argvlen)
+int ps4link_command_execdecrypt(int argc,char *argv,int argvlen)
 {
     struct { unsigned int number; unsigned short length; int argc; char argv[256]; } PACKED command;
 	int ret;
     // Build the command packet.
-    command.number = htonl(PS4LINK_EXECPAYLOAD_CMD);
+    command.number = htonl(PS4LINK_EXECDECRYPT_CMD);
     command.length = htons(sizeof(command));
     command.argc   = htonl(argc);
     memcpy(command.argv, argv, argvlen);
@@ -450,7 +454,9 @@ int ps4link_request_open(void *packet)
 	{
 		return ps4link_response_open(-1);
 	}
+	printf("antes %x\n",ntohl(request->flags));
 	request->flags = fix_flags(ntohl(request->flags));
+	printf("despues %x\n",request->flags);
 
 	debugNetPrintf(DEBUG,"Opening %s flags %x\n",request->pathname,request->flags);
     

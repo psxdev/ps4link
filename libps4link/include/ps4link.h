@@ -55,10 +55,14 @@ int ps4LinkDopen(const char *dirname);
 int ps4LinkDread(int fd, struct dirent *dir);
 int ps4LinkDclose(int fd);
 
+
+
+
 void ps4LinkRequestsAbort();
 int ps4LinkRequestsIsConnected();
 int ps4LinkGetValue(ps4LinkValue val);
 ps4LinkConfiguration *ps4LinkGetConfig();
 int ps4LinkInitWithConf(ps4LinkConfiguration *conf);
+int ps4LinkCreateConf();
 int ps4LinkInit(char *serverIp, int requestPort,int debugPort, int commandPort, int level);
 void ps4LinkFinish();
