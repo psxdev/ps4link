@@ -752,7 +752,7 @@ PS4LINK FOR PS4
 ===================
   - ps4sdk compliant
   - Added listproc sample
-  - Added execdecryp command
+  - Added execdecrypt command
   - Added execuser and execkernel commands
   - Added new commands to ps4sh
   - Added custom elfldr and fixed readme information
