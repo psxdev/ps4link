@@ -30,11 +30,11 @@ int fix_flags(int flags)
 	if (flags & 0x0002) { result |= O_RDWR | O_TRUNC; } // FIXME: Truncate is needed for some programs.
 	
 #ifndef _WIN32
-	if (flags & 0x2000) { result |= O_NONBLOCK;         }
+	if (flags & 0x0004) { result |= O_NONBLOCK;         }
 #endif
-	if (flags & 0x1000) { result |= O_APPEND;           }
-	if (flags & 0x0100) { result |= O_CREAT;            }
-	if (flags & 0x0800) { result |= O_TRUNC;            }
+	if (flags & 0x0100) { result |= O_APPEND;           }
+	if (flags & 0x0200) { result |= O_CREAT;            }
+	if (flags & 0x0400) { result |= O_TRUNC;            }
 
 #ifdef _WIN32
 
@@ -65,7 +65,6 @@ int fix_pathname(char *pathname)
 	{
 		for(loop0=0; loop0<strlen(pathname)-6; loop0++) { pathname[loop0] = pathname[loop0+6]; }
 		pathname[loop0] = 0;
-		printf("aqui\n");
 		
 	}
 	else

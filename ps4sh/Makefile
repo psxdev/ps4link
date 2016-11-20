@@ -1,6 +1,6 @@
 
 
-  CC = gcc -g
+  CC = gcc
 
 
   CFLAGS = -std=gnu99 -Wall -pedantic -I/usr/include -I/usr/local/include -I/opt/local/include

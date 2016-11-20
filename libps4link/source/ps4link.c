@@ -13,12 +13,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <kernel.h>
+#include <unistd.h>
 #include <net.h>
 #include <sys/socket.h>
 #include <debugnet.h>
 
-#include "ps4link.h"
+
+
 #include "ps4link_internal.h"
+#include "ps4link.h"
+#include "jailbreak.h"
 
 
 /*int ps4link_initialized;
@@ -35,7 +39,7 @@ ps4LinkConfiguration *configuration=NULL;
 
 int external_conf=0;
 
-
+extern int ps4KernelExecute(void *fn, void *uap, int64_t *ret0, int64_t *ret1);
 /**
  * Init ps4link library 
  *
@@ -54,6 +58,7 @@ int external_conf=0;
 int ps4LinkInit(char *serverIp, int requestPort,int debugPort, int commandPort,int level)
 {
 	int ret;
+    int64_t ret1;
 	
 	if(ps4LinkCreateConf())
 	{
@@ -87,6 +92,17 @@ int ps4LinkInit(char *serverIp, int requestPort,int debugPort, int commandPort,i
 		
 		
 		//scePthreadJoin(server_payload_thid, NULL);
+	    debugNetPrintf(DEBUG,"getuid() : %d\n", getuid());
+	    if (getuid() != 0) {
+		    debugNetPrintf(DEBUG,"executing privilege scalation \n");
+			
+	        ps4KernelExecute((void*)jailbreak, NULL, &ret1, NULL);
+		    debugNetPrintf(DEBUG,"ps4KernelExecute ret=%d \n",ret1);
+			
+		    debugNetPrintf(DEBUG,"getuid() : %d\n", getuid());
+			
+	    }
+		
 		ret=scePthreadCreate(&server_request_thid, NULL, ps4link_requests_thread, NULL, "ps4link_request_server_thread");
 		
 

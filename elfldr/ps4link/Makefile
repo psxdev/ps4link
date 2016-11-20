@@ -31,7 +31,7 @@ endif
 
 ###################################
 
-compileAndLinkLdrGen = $(Compiler) $? -std=c11 -O3 -Wall -pedantic -Iinclude -o $@
+compileAndLinkLdrGen = gcc $? -std=c11 -O3 -Wall -pedantic -Iinclude -o $@
 
 ###################################
 

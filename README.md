@@ -26,21 +26,25 @@ PS4LINK FOR PS4
   
   Remote Commands functions 
   
-  1) execelf
+  1) execuser <name.elf>
   
-  This command let you load and exec elf files compiled with libps4. Check samples directory.
+  This command let you load and exec elf files in user mode compiled with ps4sdk. Check samples directory.
   
-  2) execsprx
+  2) execkernel <name.elf>
   
-  Right now do nothing 
+  This command let you load and exec elf files in user mode compiled with ps4sdk. Check samples directory. I did not test it too much because PS4Link is running in superuser mode. 
   
   3) execwhoami
   
   Show you uid and gid 
   
-  4) execshowdir
+  4) execshowdir <ps4path>
   
-  Let you list filenames in directory. With ftp server you will not need it 
+  Let you list filenames in directories from PlayStation 4 system. 
+  
+  5) execdecrypt <ps4pathfile>
+  
+  Let you decrypt elf,self,sprx,dll files from PlayStation 4 system and save it in your PC/Mac with the same name in actual directory.
   
   5) exitps4
   
@@ -57,9 +61,9 @@ PS4LINK FOR PS4
   You will need:
   
   
-  * [clang] 3.7 or upper i tested it on freebsd and osx. For osx :
+  * [clang] 4.0 or upper i tested it on freebsd and macOS Sierra. For macOS :
   
-  For osx only (you will not need this for freebsd):
+  For macOS only (you will not need this for freebsd):
   
   Downloading clang
   
@@ -96,7 +100,7 @@ PS4LINK FOR PS4
   cmake --build . --target install
   ```
   
-  Fine a fresh clang 3.8 with the same compiling option from Sony. However Sony is using propietary linker so we need a valid linker for osx(freebsd has not this problem already has one).
+  After compiling and install you will have a fresh clang 4.0 with the same compiling options from Sony. However Sony is using propietary linker so we need a valid linker for macOS(freebsd has not this problem already has one).
   
   i downloaded binutils 2.25 and compile it with:
   ```
@@ -116,49 +120,51 @@ PS4LINK FOR PS4
   add this to your ps4dev.sh environment script only for osx using my configuration:
   PATH=$PS4DEV/host-osx/x86_64-pc-freebsd9/bin:$PS4DEV/toolchain/bin:$PATH
   
-  Also if clang is searching for ps4-ld:
+  clang is searching for orbis-ld when you compile to fix that :
   
   ```
   cd /usr/local/ps4dev/host-osx/x86_64-pc-freebsd9/bin
-  cp ld ps4-ld
+  cp ld orbis-ld
   ```
   
   
-  now we can compile valid elf for ps4 from osx :)
+  now we can compile valid elf for PlayStation 4 from macOS Sierra :)
   
   
   
-  * [libps4 library](http://github.com/ps4dev/libps4) It is the base sdk for ps4dev
+  * [ps4sdk](http://github.com/ps4dev/ps4sdk) It is the base sdk for ps4dev
   
-  * [elfldr basic loader](http://github.com/ps4dev/elfldr) It is the basic loader for ps4dev
+  * [elfldr basic loader](http://github.com/ps4dev/elfldr) It is the basic loader for ps4dev however i use embed loader in PS4Link instead
   
   
   
- 2) Declare variables and install libps4
+ 2) Declare variables and install ps4sdk
   
   You can use a script with your environment variables. I like to use /usr/local/ps4dev/ps4dev.sh
-  its content is:
+  Content for macOS:
   
   ```
   PS4DEV=/usr/local/ps4dev;export PS4DEV
-  libps4=$PS4DEV/libps4;export libps4
-  COMPILER=clang37;export COMPILER
+  PATH=$PS4DEV/host-osx/x86_64-pc-freebsd9/bin:$PS4DEV/toolchain/bin:$PATH
+  ps4sdk=$PS4DEV/ps4sdk;export ps4sdk
   ```
   
   
   ```
   cd /usr/local/ps4dev
   mkdir git
-  mkdir libps4
+  mkdir ps4sdk
   cd git
-  git clone http://github.com/ps4dev/libps4
-  cd libps4
+  git clone http://github.com/ps4dev/ps4sdk
+  cd ps4sdk
   make
-  cp -frv include $PS4DEV/libps4
-  cp -frv make $PS4DEV/libps4
-  cp -frv lib $PS4DEV/libps4
-  cp crt0.s $PS4DEV/libps4
+  cp -frv include $PS4DEV/ps4sdk
+  cp -frv make $PS4DEV/ps4sdk
+  cp -frv lib $PS4DEV/ps4sdk
+  cp crt0.s $PS4DEV/ps4sdk
   ```
+  
+  Ready we have now a valid toolchain, binutils and sdk :)
   
  3) PS4link
   
@@ -199,7 +205,7 @@ PS4LINK FOR PS4
   ./copy_ps4link_sources.sh
   make
   ```
-  Now you have a ldr.js file in /usr/local/ps4dev/git/ps4link/elfldr/local/ldr with ps4link embed in it.
+  Now you have a ldr.js file in /usr/local/ps4dev/git/ps4link/elfldr/local/ldr with PS4Link embed in it.
   
   To run webkit exploit you will need load index.html from directory local. Publish content from directory local in your web server or:
   
@@ -209,11 +215,11 @@ PS4LINK FOR PS4
   Serving directory /usr/local/ps4dev/git/ps4link/elfldr/local on port 5350
   ```
   
-  Now you have ready to run ps4link from your PlayStation 4
+  Now you are ready to run PS4Link from your PlayStation 4
   
  4) Compile ps4sh
  
-  ps4sh will let you speak with ps4link. It is based on pksh tools that we used in ps2dev days and credit goes to all people involved in its developments, greets to all of them.
+  ps4sh will let you speak with PS4Link. It is based on pksh tools that we used in ps2dev days and credit goes to all people involved in its developments, greets to all of them.
   
   change dst_ip for your PlayStation 4 ip at /usr/local/ps4dev/git/ps4link/ps4sh/src/ps4sh.c
   
@@ -223,13 +229,16 @@ PS4LINK FOR PS4
   ```
 
  5) Compile samples :)
-  3 samples are included sample, payload and ps4ftp
+  4 samples are included sample, payload, ps4ftp and listproc
   
-  sample is a very basic example it will receive debugnet conf from our ps4link, display some messages and exit.
+  sample is a very basic example it will receive debugnet conf from our PS4Link proccess, display some messages and exit.
   
-  payload is a dlclose poc, it will give you root privileges, prison break and full file access and exit. After load it ps4link will have uid and gid 0 , WARNING use it under your own risk
+  payload is a dlclose poc and it is deprecated you will not need it. It is here for historical/documentation purposes only so ignore it.
   
-  ps4ftp is based on xerpi ftp code and it will be give you a ftp server in your PlayStation 4, it can run with your game running :P at the same time if you load after payload.elf
+  ps4ftp is based on xerpi ftp code and it will be give you a ftp server in your PlayStation 4, it can run with your game running :P at the same time.
+  
+  listproc it is based on code from freebsd 9 [procstat](https://github.com/freebsd/freebsd/tree/release/9.0.0/usr.bin/procstat)
+  It will give you information about all proccess and vmaps
   
   let's go to compile our elf samples
   
@@ -246,7 +255,10 @@ PS4LINK FOR PS4
   cd ps4ftp
   make
   cp bin/ps4ftp.elf /usr/local/ps4dev/git/ps4link/ps4sh/bin
- 
+  cd ..
+  cd listproc
+  make
+  cp bin/listproc.elf /usr/local/ps4dev/git/ps4link/ps4sh/bin
   ```
   
   Ok our samples elf files are ready to use in your PlayStation 4, switch on your console :)
@@ -268,17 +280,23 @@ PS4LINK FOR PS4
   [PS4][INFO]: debugnet initialized
   [PS4][INFO]: Copyright (C) 2010,2016 Antonio Jose Ramos Marquez aka bigboss @psxdev
   [PS4][INFO]: ready to have a lot of fun...
-  [PS4][DEBUG]: [PS4LINK] Server request thread UID: 0x810CF440
-  [PS4][DEBUG]: [PS4LINK] Server command thread UID: 0x8111E640
-  [PS4][DEBUG]: [PS4LINK] Created ps4link_requests_sock: 85
+  [PS4][DEBUG]: getuid() : 1
+  [PS4][DEBUG]: executing privilege scalation
+  [PS4][DEBUG]: ps4KernelExecute ret=0
+  [PS4][DEBUG]: getuid() : 0
+  [PS4][DEBUG]: [PS4LINK] Server request thread UID: 0x80C189C0
+  [PS4][DEBUG]: [PS4LINK] Server command thread UID: 0x80CA8A20
+  [PS4][DEBUG]: [PS4LINK] Created ps4link_requests_sock: 83
   [PS4][DEBUG]: [PS4LINK] bind to ps4link_requests_sock done
   [PS4][DEBUG]: [PS4LINK] Ready for connection 1
   [PS4][DEBUG]: [PS4LINK] Waiting for connection
   [PS4][DEBUG]: [PS4LINK] Command Thread Started.
-  [PS4][DEBUG]: [PS4LINK] Created ps4link_commands_sock: 87
+  [PS4][DEBUG]: [PS4LINK] Created ps4link_commands_sock: 85
   [PS4][DEBUG]: [PS4LINK] Command listener waiting for commands...
+  
   ^C
   ```
+  Check that last getuid value is 0 and no bind error displayed, if all is fine you will see that output and you can press ctrl-c if not your PlayStation browser perhaps will give you a memory error check again until you received the right output (UID threads and socks can change in your environment)
   
   You are ready to load your elf files...
   
@@ -317,21 +335,45 @@ PS4LINK FOR PS4
  ```
  cd /usr/local/ps4dev/git/ps4link/ps4sh/bin 
  ./ps4sh
+ bigmini:bin bigboss$ debug.sh
+ [PS4][INFO]: debugnet initialized
+ [PS4][INFO]: Copyright (C) 2010,2016 Antonio Jose Ramos Marquez aka bigboss @psxdev
+ [PS4][INFO]: ready to have a lot of fun...
+ [PS4][DEBUG]: getuid() : 1
+ [PS4][DEBUG]: executing privilege scalation
+ [PS4][DEBUG]: ps4KernelExecute ret=0
+ [PS4][DEBUG]: getuid() : 0
+ [PS4][DEBUG]: [PS4LINK] Server request thread UID: 0x80C189C0
+ [PS4][DEBUG]: [PS4LINK] Server command thread UID: 0x80CA8A20
+ [PS4][DEBUG]: [PS4LINK] Created ps4link_requests_sock: 83
+ [PS4][DEBUG]: [PS4LINK] bind to ps4link_requests_sock done
+ [PS4][DEBUG]: [PS4LINK] Ready for connection 1
+ [PS4][DEBUG]: [PS4LINK] Waiting for connection
+ [PS4][DEBUG]: [PS4LINK] Command Thread Started.
+ [PS4][DEBUG]: [PS4LINK] Created ps4link_commands_sock: 85
+ [PS4][DEBUG]: [PS4LINK] Command listener waiting for commands...
+ ^Cbigmini:bin bigboss$ ./ps4sh
  ps4sh version 1.0
  /Users/bigboss/.ps4shrc: No such file or directory
  Connecting to fio ps4link ip 192.168.1.17
  log: [HOST][INFO]: [PS4SH] Ready
- log: [PS4][DEBUG]: [PS4LINK] Client connected from 192.168.1.3 port: 25030
- log: [PS4][DEBUG]: [PS4LINK] sock ps4link_fileio set 86 connected 1
- log: [PS4][DEBUG]: [PS4LINK] Waiting for connection
+ log: [PS4][DEBUG]: [PS4LINK] Client connected from 192.168.1.3 port: 26056
+
+ log: [PS4][DEBUG]: [PS4LINK] sock ps4link_fileio set 84 connected 1
  log: [PS4][DEBUG]: [PS4LINK] Initialized and connected from pc/mac ready to receive commands
+ log: [PS4][DEBUG]: [PS4LINK] Waiting for connection
+ ps4sh> cd ../../samples/listproc/bin
+ /usr/local/ps4dev/git/ps4link/samples/listproc/bin
+ ps4sh> ls
+ total 40
+ -rwxr-xr-x  1 bigboss  staff  18856 17 nov 00:52 listproc.elf
  ps4sh> execwhoami
- log: [HOST][DEBUG]: [PS4SH] [PS4SH] argc=0 argv=�����������
+ log: [HOST][DEBUG]: [PS4SH] [PS4SH] argc=0 argv=
  log: [PS4][DEBUG]: [PS4LINK] commands listener received packet size (266)
  log: [PS4][DEBUG]: [PS4LINK] Received command execwhoami
- log: [PS4][DEBUG]: [PS4LINK] UID: 1, GID: 1
+ log: [PS4][DEBUG]: [PS4LINK] UID: 0, GID: 0
  log: [PS4][DEBUG]: [PS4LINK] commands listener waiting for next command
- ps4sh> help
+ ps4sh> ?
  ?           ? :: Synonym for `help'..
  cd          cd [dir] :: Change ps4sh directory to [dir]..
  debug       debug :: Show ps4sh debug messages. ( alt-d ).
@@ -346,178 +388,13 @@ PS4LINK FOR PS4
  quit        quit :: Quit pksh ( alt-q ).
  setroot     setroot [dir] :: Sets [dir] to be root dir..
  status      status :: Display some ps4sh information. ( alt-s ).
- execelf     execelf :: Load and exec elf. ....
- execsprx    execsprx :: Load and exec sprx. ....
+ execuser    execelf :: Load and exec user elf. ....
+ execkernel  execsprx :: Load and exec kernel elf. ....
  exitps4     exitps4 :: Finish ps4link in ps4 side. ....
+ execdecrypt  decrypt :: decrypt file in ps4 side and dump to host0. ....
  execwhoami  execwhoami :: show uid and gid in ps4 side. ....
  execshowdir  execshowdir :: list file from directory in ps4 side. ....
- verbose     verbose :: Show verbose pksh messages. ( alt-v ). 
- ps4sh> ls
- total 240
- -rwxr-xr-x  1 bigboss  staff  23524  3 abr 21:05 payload.elf
- -rwxr-xr-x  1 bigboss  staff  45402  3 abr 21:35 ps4ftp.elf
- -rwxr-xr-x  1 bigboss  staff  53252  3 abr 21:00 ps4sh
- ps4sh> execelf payload.elf
- log: [HOST][DEBUG]: [PS4SH] argc=1 argv=host0:payload.elf
- log: [PS4][DEBUG]: [PS4LINK] commands listener received packet size (266)
- log: [PS4][DEBUG]: [PS4LINK] Received command execelf argc=1 argv=host0:payload.elf
- log: [PS4][DEBUG]: [PS4LINK] file open req (host0:payload.elf, 0 0)
- log: [HOST][DEBUG]: [PS4SH] Opening payload.elf flags 0
- log: [HOST][DEBUG]: [PS4SH] Open return 7
- log: [PS4][DEBUG]: [PS4LINK] file open reply received (ret 7)
- log: [PS4][DEBUG]: [PS4LINK] file lseek req (fd: 7)
- log: [HOST][DEBUG]: [PS4SH] 23524 result of lseek 0 offset 2 whence
- log: [PS4][DEBUG]: [PS4LINK] ps4link_lseek_file: lseek reply received (ret 23524)
- log: [PS4][DEBUG]: [PS4LINK] file lseek req (fd: 7)
- log: [HOST][DEBUG]: [PS4SH] 0 result of lseek 0 offset 0 whence
- log: [PS4][DEBUG]: [PS4LINK] ps4link_lseek_file: lseek reply received (ret 0)
- log: [HOST][DEBUG]: [PS4SH] read 23524 bytes of file descritor 7
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: Reply said there's 23524 bytes to read (wanted 23524)
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 0  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 1  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 2  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 3  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 4  readed 7140
- log: [PS4][DEBUG]: [PS4LINK] ps4link_file: file close req (fd: 7)
- log: [PS4][DEBUG]: [PS4LINK] ps4link_close_file: close reply received (ret 0)
- log: [PS4][DEBUG]: [PS4LINK] in elfCreate
- log: [PS4][DEBUG]: [PS4LINK] reserved memory for elf at 2014bc000
- log: [PS4][DEBUG]: [PS4LINK] ready to run elf
- log: [PS4][DEBUG]: [PS4LINK] protectedMemoryCreate(2115864) -> [PS4][DEBUG]: ps4ProtectedMemoryCreate(2115864) ->
- log: [PS4][DEBUG]: [PS4LINK] elfLoaderLoad(2014bc000, 2016c8000, 2014c0000) ->
- log: [PS4][DEBUG]: [PS4LINK] elfLoaderLoad return 0
- log: [PS4][DEBUG]: [PS4LINK] mm->main 2014c1b00
- log: [PS4][DEBUG]: PS4LINK run [2014c0000 + elfEntry = 2014c1b00]
- log: [PS4][DEBUG]: [PS4LINK] New elf thread UID: 0x8111F0A0
- log: [PS4][DEBUG]: [PS4LINK] commands listener waiting for next command
- log: [PS4][DEBUG]: [PS4LINK] Configuration pointer 8810855e0, pointer_conf string 8810855e0
- log: [PS4][DEBUG]: [PS4LINK] ps4LinkRunElfMain
- log: [PS4][INFO]: debugnet already initialized using configuration from ps4link
- log: [PS4][INFO]: debugnet_initialized=1 SocketFD=84 logLevel=3
- log: [PS4][INFO]: ready to have a lot of fun...
- log: [PS4][DEBUG]: [POC] argc=2 elfname=elf debugnetconf=8810855e0 8810855e0 84
- log: [PS4][DEBUG]: [POC] [+] Starting...
- log: [PS4][DEBUG]: [POC] [+] UID = 1
- log: [PS4][DEBUG]: [POC] Opening fisrt socket 89
- log: [PS4][DEBUG]: [POC] socket opened is now equeals fd 3840
- log: [PS4][DEBUG]: [POC] cleaning open sockets
- log: [PS4][DEBUG]: [POC] m event queue created  0x000000BD
- log: [PS4][DEBUG]: [POC] m2 event queue created  0x000000BE
- log: [PS4][DEBUG]: [POC] mapping pointer 2018d0000
- log: [PS4][DEBUG]: [POC] [+] UID: 1, GID: 1
- log: [PS4][DEBUG]: [POC] before SYS_dynlib_prepare_dlclose
- log: [PS4][DEBUG]: [POC] SYS_dynlib_prepare_dlclose: -1
- log: [PS4][DEBUG]: [POC] before sceKernelDeleteEqueue
- log: [POC] [+] Entered critical payload
- log: [POC] [+] cred
- log: [POC] [+] cred->cr_uid  cred->cr_ruid  cred->cr_rgid set to 0
- log: [POC] [+] set group0 to 0
- log: [POC] [+] set prison0
- log: [POC] [+] set rootnode to td_fdp_fd_rdir
- log: [POC] [+] set rootnode to td_fdp_fd_jdir
- log: [POC] [+] exit from payload
- log: [PS4][DEBUG]: [POC] cleaning spray queues
- log: [PS4][DEBUG]: [POC] [+] Kernel patch success!
- log: [PS4][DEBUG]: [PS4LINK] ps4LinkRunElfMain mm->main return 0
- ps4sh> execwhoami
- log: [HOST][DEBUG]: [PS4SH] [PS4SH] argc=0 argv=
- log: [PS4][DEBUG]: [PS4LINK] commands listener received packet size (266)
- log: [PS4][DEBUG]: [PS4LINK] Received command execwhoami
- log: [PS4][DEBUG]: [PS4LINK] UID: 0, GID: 0
- log: [PS4][DEBUG]: [PS4LINK] commands listener waiting for next command
- ps4sh> ls
- total 240
- -rwxr-xr-x  1 bigboss  staff  23524  3 abr 21:05 payload.elf
- -rwxr-xr-x  1 bigboss  staff  45402  3 abr 21:35 ps4ftp.elf
- -rwxr-xr-x  1 bigboss  staff  53252  3 abr 21:00 ps4sh
- ps4sh> execelf ps4ftp.elf
- log: [HOST][DEBUG]: [PS4SH] argc=1 argv=host0:ps4ftp.elf
- log: [PS4][DEBUG]: [PS4LINK] commands listener received packet size (266)
- log: [PS4][DEBUG]: [PS4LINK] Received command execelf argc=1 argv=host0:ps4ftp.elf
- log: [PS4][DEBUG]: [PS4LINK] file open req (host0:ps4ftp.elf, 0 0)
- log: [HOST][DEBUG]: [PS4SH] Opening ps4ftp.elf flags 0
- log: [HOST][DEBUG]: [PS4SH] Open return 7
- log: [PS4][DEBUG]: [PS4LINK] file open reply received (ret 7)
- log: [PS4][DEBUG]: [PS4LINK] file lseek req (fd: 7)
- log: [HOST][DEBUG]: [PS4SH] 45402 result of lseek 0 offset 2 whence
- log: [PS4][DEBUG]: [PS4LINK] ps4link_lseek_file: lseek reply received (ret 45402)
- log: [PS4][DEBUG]: [PS4LINK] file lseek req (fd: 7)
- log: [HOST][DEBUG]: [PS4SH] 0 result of lseek 0 offset 0 whence
- log: [PS4][DEBUG]: [PS4LINK] ps4link_lseek_file: lseek reply received (ret 0)
- log: [HOST][DEBUG]: [PS4SH] read 45402 bytes of file descritor 7
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: Reply said there's 45402 bytes to read (wanted 45402)
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 0  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 1  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 2  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 3  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 4  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 5  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 6  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 7  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 8  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 9  readed 4096
- log: [PS4][DEBUG]: [PS4LINK] ps4link_read_file: chunk 10  readed 4442
- log: [PS4][DEBUG]: [PS4LINK] ps4link_file: file close req (fd: 7)
- log: [PS4][DEBUG]: [PS4LINK] ps4link_close_file: close reply received (ret 0)
- log: [PS4][DEBUG]: [PS4LINK] in elfCreate
- log: [PS4][DEBUG]: [PS4LINK] reserved memory for elf at 2014cc000
- log: [PS4][DEBUG]: [PS4LINK] ready to run elf
- log: [PS4][DEBUG]: [PS4LINK] protectedMemoryCreate(2135064) -> [PS4][DEBUG]: ps4ProtectedMemoryCreate(2135064) ->
- log: [PS4][DEBUG]: [PS4LINK] elfLoaderLoad(2014cc000, 2018f0000, 2014d0000) ->
- log: [PS4][DEBUG]: [PS4LINK] elfLoaderLoad return 0
- log: [PS4][DEBUG]: [PS4LINK] mm->main 2014d3e10
- log: [PS4][DEBUG]: PS4LINK run [2014d0000 + elfEntry = 2014d3e10]
- log: [PS4][DEBUG]: [PS4LINK] New elf thread UID: 0x8111F9E0
- log: [PS4][DEBUG]: [PS4LINK] commands listener waiting for next command
- log: [PS4][DEBUG]: [PS4LINK] Configuration pointer 8810855e0, pointer_conf string 8810855e0
- log: [PS4][DEBUG]: [PS4LINK] ps4LinkRunElfMain
- log: [PS4][INFO]: debugnet already initialized using configuration from ps4link
- log: [PS4][INFO]: debugnet_initialized=1 SocketFD=84 logLevel=3
- log: [PS4][INFO]: ready to have a lot of fun...
- log: [PS4][DEBUG]: [PS4FTP] 2 elfname=elf debugnetconf=8810855e0 8810855e0 84
- log: [PS4][DEBUG]: [PS4FTP] Client list mutex UID: 0x81121BE0
- log: [PS4][DEBUG]: [PS4FTP] Server thread UID: 0x81120440
- log: [PS4][DEBUG]: [PS4FTP] Server thread started!
- log: [PS4][DEBUG]: [PS4FTP] Server socket fd: 89
- log: [PS4][DEBUG]: [PS4FTP] sceNetBind(): 0x00000000
- log: [PS4][DEBUG]: [PS4FTP] sceNetListen(): 0x00000000
- log: [PS4][DEBUG]: [PS4FTP] Waiting for incoming connections...
- log: [PS4][DEBUG]: [PS4FTP] New connection, client fd: 0x0000005A
- log: [PS4][INFO]: Client 0 connected, IP: 192.168.1.3 port: 25286
- log: [PS4][DEBUG]: [PS4FTP] Client 0 thread UID: 0x81110720
- log: [PS4][DEBUG]: [PS4FTP] Waiting for incoming connections...
- log: [PS4][DEBUG]: [PS4FTP] Client thread 0 started!
- log: [PS4][DEBUG]: [PS4FTP] Received 14 bytes from client number 0:
- log: [PS4][INFO]: 	0> USER bigboss
- log: [PS4][DEBUG]: [PS4FTP] Received 11 bytes from client number 0:
- log: [PS4][INFO]: 	0> PASS pass
- log: [PS4][DEBUG]: [PS4FTP] Received 6 bytes from client number 0:
- log: [PS4][INFO]: 	0> SYST
- log: [PS4][DEBUG]: [PS4FTP] Received 6 bytes from client number 0:
- log: [PS4][INFO]: 	0> FEAT
- log: [PS4][DEBUG]: [PS4FTP] Received 5 bytes from client number 0:
- log: [PS4][INFO]: 	0> PWD
- log: [PS4][DEBUG]: [PS4FTP] Received 6 bytes from client number 0:
- log: [PS4][INFO]: 	0> EPSV
- log: [PS4][DEBUG]: [PS4FTP] Received 6 bytes from client number 0:
- log: [PS4][INFO]: 	0> PASV
- log: [PS4][DEBUG]: [PS4FTP] PASV data socket fd: 92
- log: [PS4][DEBUG]: [PS4FTP] sceNetBind(): 0x00000000
- log: [PS4][DEBUG]: [PS4FTP] sceNetListen(): 0x00000000
- log: [PS4][DEBUG]: [PS4FTP] PASV mode port: 0xB9C7
- log: [PS4][DEBUG]: [PS4FTP] Received 6 bytes from client number 0:
- log: [PS4][INFO]: 	0> LIST
- log: [PS4][DEBUG]: [PS4FTP] PASV client fd: 0x0000005E
- log: [PS4][DEBUG]: [PS4FTP] Done sending LIST
- log: [PS4][DEBUG]: [PS4FTP] Received 6 bytes from client number 0:
- log: [PS4][INFO]: 	0> QUIT
- log: [PS4][DEBUG]: [PS4FTP] Client thread 0 exiting!
- ps4sh> execwhoami
- log: [HOST][DEBUG]: [PS4SH] [PS4SH] argc=0 argv=
- log: [PS4][DEBUG]: [PS4LINK] commands listener received packet size (266)
- log: [PS4][DEBUG]: [PS4LINK] Received command execwhoami
- log: [PS4][DEBUG]: [PS4LINK] UID: 0, GID: 0
- log: [PS4][DEBUG]: [PS4LINK] commands listener waiting for next command
+ verbose     verbose :: Show verbose ps4sh messages. ( alt-v ).
  ps4sh> execshowdir /
  log: [HOST][DEBUG]: [PS4SH] [PS4SH] argc=1 argv=/
  log: [PS4][DEBUG]: [PS4LINK] commands listener received packet size (266)
@@ -550,70 +427,315 @@ PS4LINK FOR PS4
  log: [PS4][DEBUG]: [PS4LINK] closing dfd
  log: [PS4][DEBUG]: [PS4LINK] end command execshowdir
  log: [PS4][DEBUG]: [PS4LINK] commands listener waiting for next command
- log: [PS4][DEBUG]: [PS4FTP] New connection, client fd: 0x0000005B
- log: [PS4][INFO]: Client 1 connected, IP: 192.168.1.3 port: 25798
- log: [PS4][DEBUG]: [PS4FTP] Client 1 thread UID: 0x81111180
- log: [PS4][DEBUG]: [PS4FTP] Server thread exiting!
- log: [PS4][DEBUG]: [PS4FTP] Client thread 1 started!
- log: [PS4][DEBUG]: [PS4FTP] Client thread 1 exiting!
- log: [PS4][DEBUG]: [PS4FTP] calling ftp_fini
- ps4sh> execwhoami
- log: [HOST][DEBUG]: [PS4SH] [PS4SH] argc=0 argv=
+ ps4sh> execdecrypt /mini-siscore.elf
+ log: [HOST][DEBUG]: [PS4SH] [PS4SH] argc=1 argv=/mini-siscore.elf
  log: [PS4][DEBUG]: [PS4LINK] commands listener received packet size (266)
- log: [PS4][DEBUG]: [PS4LINK] Received command execwhoami
- log: [PS4][DEBUG]: [PS4LINK] UID: 0, GID: 0
+ log: [PS4][DEBUG]: [PS4LINK] Received command execdecrypt argc=1 argv=/mini-siscore.elf
+ log: [PS4][DEBUG]: [PS4LINK] file name to decrypt mini-siscore.elf
+ log: [PS4][DEBUG]: [PS4LINK] savefile in your host host0:mini-siscore.elf
+ log: [PS4][DEBUG]: [PS4LINK] kernel hook
+ log: [PS4][DEBUG]: [PS4LINK] open /mini-siscore.elf err : No such file or directory
+ log: [PS4][DEBUG]: [PS4LINK] kernel unhook
+ log: [PS4][DEBUG]: [PS4LINK] end command execdecrypt
  log: [PS4][DEBUG]: [PS4LINK] commands listener waiting for next command
- ps4sh> exitps4
- #
+ ps4sh> execdecrypt /mini-syscore.elf
+ log: [HOST][DEBUG]: [PS4SH] [PS4SH] argc=1 argv=/mini-syscore.elf
+ log: [PS4][DEBUG]: [PS4LINK] commands listener received packet size (266)
+ log: [PS4][DEBUG]: [PS4LINK] Received command execdecrypt argc=1 argv=/mini-syscore.elf
+ log: [PS4][DEBUG]: [PS4LINK] file name to decrypt mini-syscore.elf
+ log: [PS4][DEBUG]: [PS4LINK] savefile in your host host0:mini-syscore.elf
+ log: [PS4][DEBUG]: [PS4LINK] kernel hook
+ log: [PS4][DEBUG]: [PS4LINK] mmap /mini-syscore.elf : 201ea4000
+ log: [PS4][DEBUG]: [PS4LINK] ehdr : 201ea40a0
+ log: [PS4][DEBUG]: [PS4LINK] phdrs : 201ea40e0
+ log: [PS4][DEBUG]: [PS4LINK] segment num : 4
+ log: [PS4][DEBUG]: [PS4LINK] file open req (host0:mini-syscore.elf, 202 0)
+ log: [HOST][DEBUG]: [PS4SH] Opening mini-syscore.elf flags 402
+ log: [HOST][DEBUG]: [PS4SH] Open return 7
+ log: [PS4][DEBUG]: [PS4LINK] file open reply received (ret 7)
+ log: [PS4][DEBUG]: [PS4LINK] elf header + phdr size : 0x00000120
+ log: [PS4][DEBUG]: [PS4LINK] file write req (fd: 7)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 288 bytes (asked for 288)
+ log: [PS4][DEBUG]: [PS4LINK] sbuf index : 0, offset : 0x0000000000004000, bufsz : 0x0000000000054000, filesz : 0x0000000000051684
+ log: [PS4][DEBUG]: [PS4LINK] file lseek req (fd: 7)
+ log: [HOST][DEBUG]: [PS4SH] 16384 result of lseek 16384 offset 0 whence
+ log: [PS4][DEBUG]: [PS4LINK] ps4link_lseek_file: lseek reply received (ret 16384)
+ log: [PS4][DEBUG]: [PS4LINK] file write req (fd: 7)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1362 bytes (asked for 1362)
+ log: [PS4][DEBUG]: [PS4LINK] sbuf index : 1, offset : 0x0000000000058000, bufsz : 0x0000000000004000, filesz : 0x0000000000001920
+ log: [HOST][DEBUG]: [PS4SH] 360448 result of lseek 360448 offset 0 whence
+ log: [PS4][DEBUG]: [PS4LINK] file lseek req (fd: 7)
+ log: [PS4][DEBUG]: [PS4LINK] ps4link_lseek_file: lseek reply received (ret 360448)
+ log: [PS4][DEBUG]: [PS4LINK] file write req (fd: 7)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 1446 bytes (asked for 1446)
+ log: [PS4][DEBUG]: [PS4LINK] wrote 478 bytes (asked for 478)
+ log: [PS4][DEBUG]: [PS4LINK] ps4link_file: file close req (fd: 7)
+ log: [PS4][DEBUG]: [PS4LINK] ps4link_close_file: close reply received (ret 0)
+ log: [PS4][DEBUG]: [PS4LINK] dump completed
+ log: [PS4][DEBUG]: [PS4LINK] kernel unhook
+ log: [PS4][DEBUG]: [PS4LINK] end command execdecrypt
+ log: [PS4][DEBUG]: [PS4LINK] commands listener waiting for next command
+ ps4sh> ls
+ total 776
+ -rwxr-xr-x  1 bigboss  staff   18816 17 nov 01:02 listproc.elf
+ -rw-r--r--  1 bigboss  staff  376832 17 nov 01:05 mini-syscore.elf
+ ps4sh> file mini-syscore.elf
+ mini-syscore.elf: ELF 64-bit LSB executable, x86-64, version 1 (FreeBSD), statically linked, corrupted section header size
+ 
  ```
  
+ you can check output from listproc.elf:
  
- output from ftp client session :)
+ * [without game loaded](https://gist.github.com/psxdev/cb3c9455aa06a5ae77a8be1280d14725)
  
- ```
- ftp 192.168.1.17 1337
- Connected to 192.168.1.17.
- 220 FTPS4 Server ready.
- Name (192.168.1.17:bigboss):
- 331 Username OK, need password b0ss.
- Password:
- 230 User logged in!
- Remote system type is UNIX.
- Using binary mode to transfer files.
- ftp> ls
- 227 Entering Passive Mode (192,168,1,17,199,185)
- 150 Opening ASCII mode data transfer for LIST.
- drwxr-xr-x 1 ps4 ps4 16384 Jan 1  03:00 .
- drwxr-xr-x 1 ps4 ps4 16384 Jan 1  03:00 ..
- drwxr-xr-x 1 ps4 ps4 4096 Dec 30 03:00 adm
- drwxr-xr-x 1 ps4 ps4 4096 Dec 30 03:00 app_tmp
- drwxr-xr-x 1 ps4 ps4 512 Feb 21 20:35 data
- drwxr-xr-x 1 ps4 ps4 512 Apr 3  21:41 dev
- drwxr-xr-x 1 ps4 ps4 4096 Dec 30 03:00 eap_user
- drwxr-xr-x 1 ps4 ps4 4096 Dec 30 03:00 eap_vsh
- drwxr-xr-x 1 ps4 ps4 4096 Dec 30 03:00 hdd
- drwxr-xr-x 1 ps4 ps4 4096 Dec 30 03:00 host
- drwxr-xr-x 1 ps4 ps4 4096 Dec 30 03:00 hostapp
- -rw-r--r-- 1 ps4 ps4 341886 Aug 20 03:14 mini-syscore.elf
- drwxr-xr-x 1 ps4 ps4 440 Apr 3  21:44 mnt
- drwxr-xr-x 1 ps4 ps4 4096 Jan 1  03:00 preinst
- drwxr-xr-x 1 ps4 ps4 4096 Jan 1  03:00 preinst2
- -rw-r--r-- 1 ps4 ps4 2738424 Aug 20 03:14 safemode.elf
- -rw-r--r-- 1 ps4 ps4 117164 Aug 20 03:14 SceBootSplash.elf
- -rw-r--r-- 1 ps4 ps4 538740 Aug 20 03:14 SceSysAvControl.elf
- drwxr-xr-x 1 ps4 ps4 4096 Jan 1  03:00 system
- drwxr-xr-x 1 ps4 ps4 512 Nov 29 21:05 system_data
- drwxr-xr-x 1 ps4 ps4 4096 Jan 1  03:00 system_ex
- drwxr-xr-x 1 ps4 ps4 28440 Apr 3  21:59 system_tmp
- drwxr-xr-x 1 ps4 ps4 32768 Jan 1  03:00 update
- drwxr-xr-x 1 ps4 ps4 4096 Dec 30 03:00 usb
- drwxr-xr-x 1 ps4 ps4 512 Sep 30 17:21 user
- 226 Transfer complete.
- ftp> quit
- 221 Goodbye senpai :'(
- $ ftp 192.168.1.17
- 
- ```
+ * [with game loaded](https://gist.github.com/psxdev/1248915a360c479d8ca2107dd706beef)
  
  8) ready to have a lot of fun :P
  
@@ -621,11 +743,16 @@ PS4LINK FOR PS4
  What next?
 ===================
   
- Improve code, incoporate new features to libps4 and  pad and graphics will be next target.
+ Improve code, incoporate new features to ps4sdk.
   
 ===================
  Last Changes
 ===================
+  - ps4sdk compliant
+  - Added listproc sample
+  - Added execdecryp command
+  - Added execuser and execkernel commands
+  - Added new commands to ps4sh
   - Added custom elfldr and fixed readme information
   - Added commands execwhoami and execshowdir
   - Added ftp server in sample ps4ftp. You can use execelf ps4ftp.elf
@@ -643,8 +770,9 @@ PS4LINK FOR PS4
   Special thanks goes to:
   
   - ps2dev old comrades. 
-  - hitodama for libps4 and elfldr 
+  - hitodama for ps4sdk and elfldr 
   - xerpi for ps4ftp code base :P
+  - xecoxao for sharing code to decrypt files i only add save option to host0 :P
   - kr105 for valid return code to userland in his dlclose poc
   - qwertyoruiop and cturt for sharing dlclose information
   - All people who collaborated in ps4dev

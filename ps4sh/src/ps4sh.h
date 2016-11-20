@@ -99,10 +99,10 @@ int cli_help(char *arg);
 int cli_debug(); 
 int cli_quit();
 int cli_status();
-int cli_execelf(char *arg);
-int cli_execsprx(char *arg);
+int cli_execuser(char *arg);
+int cli_execkernel(char *arg);
 int cli_exitps4(char *arg);
-int cli_execpayload(char *arg);
+int cli_execdecrypt(char *arg);
 int cli_execwhoami(char *arg);
 int cli_execshowdir(char *arg);
 
@@ -131,13 +131,13 @@ COMMAND commands[22] = {
     { "quit", cli_quit, "quit :: Quit pksh ( alt-q )" },
     { "setroot", cli_setroot, "setroot [dir] :: Sets [dir] to be root dir." },
     { "status", cli_status, "status :: Display some ps4sh information. ( alt-s )" },
-    { "execelf", cli_execelf, "execelf :: Load and exec elf. ..." },
-    { "execsprx", cli_execsprx, "execsprx :: Load and exec sprx. ..." },
+    { "execuser", cli_execuser, "execuser :: Load and exec user elf. ..." },
+    { "execkernel", cli_execkernel, "execkernel :: Load and exec kernel elf. ..." },
     { "exitps4", cli_exitps4, "exitps4 :: Finish ps4link in ps4 side. ..." },
-    { "execpayload", cli_execpayload, "execpayload :: load payload in ps4 side. ..." },
+    { "execdecrypt", cli_execdecrypt, "decrypt :: decrypt file in ps4 side and dump to host0. ..." },
     { "execwhoami", cli_execwhoami, "execwhoami :: show uid and gid in ps4 side. ..." },
     { "execshowdir", cli_execshowdir, "execshowdir :: list file from directory in ps4 side. ..." },
-    { "verbose", cli_verbose, "verbose :: Show verbose pksh messages. ( alt-v )" },
+    { "verbose", cli_verbose, "verbose :: Show verbose ps4sh messages. ( alt-v )" },
 	{ (char *)NULL, (rl_icpfunc_t *)NULL, (char *)NULL }
 };
 

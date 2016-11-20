@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "elfloader.h"
+#include <elfloader.h>
 
 /* Defines */
 
@@ -22,7 +22,7 @@
 
 /* Constants */
 
-enum{ ElfMaximalStringLength = 4096 };
+enum{ ELF_MAXIMAL_STRING_LENGTH = 4096 };
 
 /* Type */
 
@@ -32,6 +32,16 @@ typedef struct Elf // FIXME: We could cache a lot of offsets here to inc. perfor
 	size_t size; // FIXME: Do more checks on size
 }
 Elf;
+
+size_t elfGetSize(Elf *elf)
+{
+	return elf->size;
+}
+
+uint8_t *elfGetData(Elf *elf)
+{
+	return elf->data;
+}
 
 /* --- elf header --- */
 
@@ -59,7 +69,7 @@ uint64_t elfLargestAlignment(Elf *elf) //ignore ...
 
 	while(1)
 	{
-		ElfSegment *h = elfSegment(elf, &index, ElfSegmentAttributeType, PT_LOAD);
+		ElfSegment *h = elfSegment(elf, &index, ELF_SEGMENT_ATTRIBUTE_TYPE, PT_LOAD);
 		if(!h)
 			break;
 
@@ -121,7 +131,7 @@ char *elfSectionStrings(Elf *elf, uint64_t *size)
 	ElfSection *s;
  	h = elfHeader(elf);
 	i = h->e_shstrndx;
-	s = elfSection(elf, &i, ElfSectionAttributeNone, 0);
+	s = elfSection(elf, &i, ELF_SECTION_ATTRIBUTE_NONE, 0);
 	if(size)
 		*size = s->sh_size;
 	return (char *)elf->data + s->sh_offset;
@@ -131,25 +141,25 @@ uint64_t elfSectionAttribute(ElfSection *elfSection, ElfSectionAttribute attribu
 {
 	switch(attribute)
 	{
-		case ElfSectionAttributeName:
+		case ELF_SECTION_ATTRIBUTE_NAME:
 			return elfSection->sh_name;
-		case ElfSectionAttributeType:
+		case ELF_SECTION_ATTRIBUTE_TYPE:
 			return elfSection->sh_type;
-		case ElfSectionAttributeFlags:
+		case ELF_SECTION_ATTRIBUTE_FLAGS:
 			return elfSection->sh_flags;
-		case ElfSectionAttributeAddress:
+		case ELF_SECTION_ATTRIBUTE_ADDRESS:
 			return elfSection->sh_addr;
-		case ElfSectionAttributeOffset:
+		case ELF_SECTION_ATTRIBUTE_OFFSET:
 			return elfSection->sh_offset;
-		case ElfSectionAttributeSize:
+		case ELF_SECTION_ATTRIBUTE_SIZE:
 			return elfSection->sh_size;
-		case ElfSectionAttributeLink:
+		case ELF_SECTION_ATTRIBUTE_LINK:
 			return elfSection->sh_link;
-		case ElfSectionAttributeInfo:
+		case ELF_SECTION_ATTRIBUTE_INFO:
 			return elfSection->sh_info;
-		case ElfSectionAttributeMemoryAlignment:
+		case ELF_SECTION_ATTRIBUTE_MEMORY_ALIGNMENT:
 			return elfSection->sh_addralign;
-		case ElfSectionAttributeEntrySize:
+		case ELF_SECTION_ATTRIBUTE_ENTRY_SIZE:
 			return elfSection->sh_entsize;
 		default:
 			break;
@@ -195,7 +205,7 @@ ElfSection *elfSection(Elf *elf, uint16_t *index, ElfSectionAttribute attribute,
 	for(; *index < length; ++(*index))
 	{
 		t = (ElfSection *)((uint8_t *)h + *index * size);
-		if(attribute == ElfSectionAttributeNone || elfSectionAttribute(t, attribute) == value)
+		if(attribute == ELF_SECTION_ATTRIBUTE_NONE || elfSectionAttribute(t, attribute) == value)
 			return t;
 	}
 
@@ -208,7 +218,7 @@ ElfSection *elfSectionByName(Elf *elf, char *name)
 	char *mem = elfSectionStrings(elf, &size);
 
 	uint32_t offset = elfStringToOffset(mem, size, name);
-	ElfSection *sh = elfSection(elf, NULL, ElfSectionAttributeName, offset);
+	ElfSection *sh = elfSection(elf, NULL, ELF_SECTION_ATTRIBUTE_NAME, offset);
 
 	return sh;
 }
@@ -219,21 +229,21 @@ uint64_t elfSegmentAttribute(ElfSegment *elfSegment, ElfSegmentAttribute attribu
 {
 	switch(attribute)
 	{
-		case ElfSegmentAttributeType:
+		case ELF_SEGMENT_ATTRIBUTE_TYPE:
 			return elfSegment->p_type;
-		case ElfSegmentAttributeFlags:
+		case ELF_SEGMENT_ATTRIBUTE_FLAGS:
 			return elfSegment->p_flags;
-		case ElfSegmentAttributeOffset:
+		case ELF_SEGMENT_ATTRIBUTE_OFFSET:
 			return elfSegment->p_offset;
-		case ElfSegmentAttributeVirtualAddress:
+		case ELF_SEGMENT_ATTRIBUTE_VIRTUAL_ADDRESS:
 			return elfSegment->p_vaddr;
-		case ElfSegmentAttributePhysicalAddress:
+		case ELF_SEGMENT_ATTRIBUTE_PHYSICAL_ADDRESS:
 			return elfSegment->p_paddr;
-		case ElfSegmentAttributeFileSize:
+		case ELF_SEGMENT_ATTRIBUTE_FILE_SIZE:
 			return elfSegment->p_filesz;
-		case ElfSegmentAttributeMemorySize:
+		case ELF_SEGMENT_ATTRIBUTE_MEMORY_SIZE:
 			return elfSegment->p_memsz;
-		case ElfSegmentAttributeAlignment:
+		case ELF_SEGMENT_ATTRIBUTE_ALIGNMENT:
 			return elfSegment->p_align;
 		default:
 			break;
@@ -279,7 +289,7 @@ ElfSegment *elfSegment(Elf *elf, uint16_t *index, ElfSegmentAttribute attribute,
 	for(; *index < length; ++(*index))
 	{
 		t = (ElfSegment *)((uint8_t *)h + *index * size);
-		if(attribute == ElfSegmentAttributeNone || elfSegmentAttribute(t, attribute) == value)
+		if(attribute == ELF_SEGMENT_ATTRIBUTE_NONE || elfSegmentAttribute(t, attribute) == value)
 			return t;
 	}
 
@@ -292,11 +302,11 @@ uint64_t elfDynamicAttribute(ElfDynamic *elfDynamic, ElfDynamicAttribute attribu
 {
 	switch(attribute)
 	{
-		case ElfDynamicAttributeTag:
+		case ELF_DYNAMIC_ATTRIBUTE_TAG:
 			return elfDynamic->d_tag;
-		case ElfDynamicAttributeValue:
+		case ELF_DYNAMIC_ATTRIBUTE_VALUE:
 			return elfDynamic->d_un.d_val;
-		case ElfDynamicAttributePointer:
+		case ELF_DYNAMIC_ATTRIBUTE_POINTER:
 			return elfDynamic->d_un.d_ptr;
 		default:
 			break;
@@ -321,7 +331,7 @@ ElfDynamic *elfDynamics(Elf *elf, uint16_t *size, uint16_t *length)
 	if(!elf)
 		return NULL;
 
-	if((h = elfSection(elf, NULL, ElfSectionAttributeType, SHT_DYNAMIC)))
+	if((h = elfSection(elf, NULL, ELF_SECTION_ATTRIBUTE_TYPE, SHT_DYNAMIC)))
 	{
 		if(size != NULL)
 			*size = h->sh_entsize;
@@ -330,7 +340,7 @@ ElfDynamic *elfDynamics(Elf *elf, uint16_t *size, uint16_t *length)
 
 		return (ElfDynamic *)(elf->data + h->sh_offset);
 	}
-	else if((h2 = elfSegment(elf, NULL, ElfSegmentAttributeType, PT_DYNAMIC)))
+	else if((h2 = elfSegment(elf, NULL, ELF_SEGMENT_ATTRIBUTE_TYPE, PT_DYNAMIC)))
 	{
 		if(size != NULL)
 			*size = sizeof(ElfDynamic);
@@ -361,7 +371,7 @@ ElfDynamic *elfDynamic(Elf *elf, uint16_t *index, ElfDynamicAttribute attribute,
 	for(; *index < length; ++(*index))
 	{
 		t = (ElfDynamic *)((uint8_t *)h + *index * size);
-		if(attribute == ElfDynamicAttributeNone || elfDynamicAttribute(t, attribute) == value)
+		if(attribute == ELF_DYNAMIC_ATTRIBUTE_NONE || elfDynamicAttribute(t, attribute) == value)
 			return t;
 	}
 
@@ -376,17 +386,7 @@ ElfDynamic *elfLoadedDynamics(Elf *elf, uint16_t *size, uint16_t *length)
 	if(!elf)
 		return NULL;
 
-	/*if((h = elfSection(elf, NULL, ElfSectionAttributeType, SHT_DYNAMIC)))
-	{
-		if(size != NULL)
-			*size = h->sh_entsize;
-		if(length != NULL)
-			*length = h->sh_size / h->sh_entsize;
-
-		return (ElfDynamic *)h->sh_addr;
-	}
-	else */
-	if((h2 = elfSegment(elf, NULL, ElfSegmentAttributeType, PT_DYNAMIC)))
+	if((h2 = elfSegment(elf, NULL, ELF_SEGMENT_ATTRIBUTE_TYPE, PT_DYNAMIC)))
 	{
 		if(size != NULL)
 			*size = sizeof(ElfDynamic);
@@ -417,7 +417,7 @@ ElfDynamic *elfLoadedDynamic(Elf *elf, uint16_t *index, ElfDynamicAttribute attr
 	for(; *index < length; ++(*index))
 	{
 		t = (ElfDynamic *)((uint8_t *)h + *index * size);
-		if(attribute == ElfDynamicAttributeNone || elfDynamicAttribute(t, attribute) == value)
+		if(attribute == ELF_DYNAMIC_ATTRIBUTE_NONE || elfDynamicAttribute(t, attribute) == value)
 			return t;
 	}
 
@@ -460,7 +460,7 @@ uint32_t elfStringToOffset(char *mem, uint64_t size, char *str)
 
 	for(i = 0; i < size; ++i)
 	{
-		for(j = 0; j < ElfMaximalStringLength && mem[i + j] == str[j]; ++j)
+		for(j = 0; j < ELF_MAXIMAL_STRING_LENGTH && mem[i + j] == str[j]; ++j)
 			if(str[j] == '\0')
 				return i;
 	}
@@ -478,7 +478,7 @@ uint32_t elfStringToIndex(char *mem, uint64_t size, char *str)
 	index = 0;
 	for(i = 0; i < size; ++i)
 	{
-		for(j = 0; j < ElfMaximalStringLength && mem[i + j] == str[j]; ++j)
+		for(j = 0; j < ELF_MAXIMAL_STRING_LENGTH && mem[i + j] == str[j]; ++j)
 			if(str[j] == '\0')
 				return index;
 
@@ -495,11 +495,11 @@ uint64_t elfAddendRelocationAttribute(ElfAddendRelocation *elfAddendRelocation, 
 {
 	switch(attribute)
 	{
-		case ElfAddendRelocationAttributeInfo:
+		case ELF_ADDEND_RELOCATION_ATTRIBUTE_INFO:
 			return elfAddendRelocation->r_info;
-		case ElfAddendRelocationAttributeOffset:
+		case ELF_ADDEND_RELOCATION_ATTRIBUTE_OFFSET:
 			return elfAddendRelocation->r_offset;
-		case ElfAddendRelocationAttributeAddend:
+		case ELF_ADDEND_RELOCATION_ATTRIBUTE_ADDEND:
 			return elfAddendRelocation->r_addend;
 		default:
 			break;
@@ -558,17 +558,17 @@ uint64_t elfSymbolAttribute(ElfSymbol *elfSymbol, ElfSymbolAttribute attribute)
 {
 	switch(attribute)
 	{
-		case ElfSymbolAttributeName:
+		case ELF_SYMBOL_ATTRIBUTE_NAME:
 			return elfSymbol->st_name;
-		case ElfSymbolAttributeInfo:
+		case ELF_SYMBOL_ATTRIBUTE_INFO:
 			return elfSymbol->st_info;
-		case ElfSymbolAttributeUnused:
+		case ELF_SYMBOL_ATTRIBUTE_UNUSED:
 			return elfSymbol->st_other;
-		case ElfSymbolAttributeSectionIndex:
+		case ELF_SYMBOL_ATTRIBUTE_SECTION_INDEX:
 			return elfSymbol->st_shndx;
-		case ElfSymbolAttributeValue:
+		case ELF_SYMBOL_ATTRIBUTE_VALUE:
 			return elfSymbol->st_value;
-		case ElfSymbolAttributeSize:
+		case ELF_SYMBOL_ATTRIBUTE_SIZE:
 			return elfSymbol->st_size;
 		default:
 			break;
@@ -732,9 +732,9 @@ int elfLoaderInstantiate(Elf *elf, void *memory)
 	uint16_t index;
 
 	if(elf == NULL)
-		return ElfLoaderReturnElfNull;
+		return ELF_LOADER_RETURN_ELF_NULL;
  	if(memory == NULL)
-		return ElfLoaderReturnWritableMemoryNull;
+		return ELF_LOADER_RETURN_NO_WRITABLE_MEMORY;
 
 	segments = elfSegments(elf, &size, &length);
 	if(segments)
@@ -764,10 +764,10 @@ int elfLoaderInstantiate(Elf *elf, void *memory)
 		}
 	}
 
-	return ElfLoaderReturnOK;
+	return ELF_LOADER_RETURN_OK;
 }
 
-int elfLoaderRelativeAddressIsExecutable(Elf *elf, uint64_t address)
+int elfLoaderRelativeAddressIsExecutable(Elf *elf, int64_t address)
 {
 	ElfSection *sections;
 	ElfSegment *segments;
@@ -794,7 +794,7 @@ int elfLoaderRelativeAddressIsExecutable(Elf *elf, uint64_t address)
 		length = 0;
 		sections = elfSections(elf, &size, &length);
 		if(!sections)
-			return ElfLoaderReturnNoSectionsOrSegments;
+			return ELF_LOADER_RETURN_NO_SECTIONS_OR_SEGMENTS;
 		for(index = 0; index < length; ++index)
 		{
 			ElfSection *s = (ElfSection *)((uint8_t *)sections + index * size);
@@ -806,6 +806,7 @@ int elfLoaderRelativeAddressIsExecutable(Elf *elf, uint64_t address)
 	return 1; // FIXME: Recheck
 }
 
+// FIXME: Implement ps4 aware relocation for functions using dlsym
 int elfLoaderRelocate(Elf *elf, void *writable, void *executable)
 {
 	int i, j;
@@ -823,11 +824,11 @@ int elfLoaderRelocate(Elf *elf, void *writable, void *executable)
 	char *rel[2] = {r1, r2};
 
 	if(elf == NULL)
-		return ElfLoaderReturnElfNull;
+		return ELF_LOADER_RETURN_ELF_NULL;
  	if(writable == NULL)
-		return ElfLoaderReturnWritableMemoryNull;
+		return ELF_LOADER_RETURN_NO_WRITABLE_MEMORY;
  	if(executable == NULL)
-		return ElfLoaderReturnExecutableMemoryNull;
+		return ELF_LOADER_RETURN_NO_EXECUTABLE_MEMORY;
 
 	dynamicSymbols = elfSymbols(elf, ".dynsym", &dynamicSymbolSize, &dynamicSymbolsLength);
 	//symbols = elfSymbols(elf, ".symtab", &symbolSize, &symbolsLength);
@@ -843,8 +844,8 @@ int elfLoaderRelocate(Elf *elf, void *writable, void *executable)
 			ElfAddendRelocation *relocation = (ElfAddendRelocation *)(((uint8_t *)relocations) + relocationSize * i);
 			uint16_t relocationType = (uint16_t)elfRelocationType(relocation->r_info);
 			uint16_t relocationSymbol = (uint16_t)elfRelocationSymbol(relocation->r_info);
-			uint64_t *offset = (uint64_t*)((char *)writable + relocation->r_offset);
-			uint64_t value = 0;
+			uint8_t **offset = (uint8_t **)((uint8_t *)writable + relocation->r_offset);
+			int64_t value = 0;
 
 			switch(relocationType)
 			{
@@ -861,34 +862,34 @@ int elfLoaderRelocate(Elf *elf, void *writable, void *executable)
 					value = symbol->st_value;
 					break;
 				default:
-					return ElfLoaderReturnUnknownRelocation;
+					return ELF_LOADER_RETURN_UNKNOWN_RELOCATION;
 			}
 
 			if(elfLoaderRelativeAddressIsExecutable(elf, value))
-				*offset = (uint64_t)executable + value;
+				*offset = (uint8_t *)executable + value;
 			else
-				*offset = (uint64_t)writable + value;
+				*offset = (uint8_t *)writable + value;
 		}
 	}
 
-	return ElfLoaderReturnOK;
+	return ELF_LOADER_RETURN_OK;
 }
 
 int elfLoaderLoad(Elf *elf, void *writable, void *executable)
 {
-	int r = ElfLoaderReturnOK;
+	int r = ELF_LOADER_RETURN_OK;
 
 	if(elf == NULL)
-		return ElfLoaderReturnElfNull;
+		return ELF_LOADER_RETURN_ELF_NULL;
  	if(writable == NULL)
-		return ElfLoaderReturnWritableMemoryNull;
+		return ELF_LOADER_RETURN_NO_WRITABLE_MEMORY;
  	if(executable == NULL)
-		return ElfLoaderReturnExecutableMemoryNull;
+		return ELF_LOADER_RETURN_NO_EXECUTABLE_MEMORY;
 
 	if(!elfLoaderIsLoadable(elf))
-		return ElfLoaderReturnIsNotLoadable;
+		return ELF_LOADER_RETURN_IS_NOT_LOADABLE;
 
-	if((r = elfLoaderInstantiate(elf, writable)) != ElfLoaderReturnOK)
+	if((r = elfLoaderInstantiate(elf, writable)) != ELF_LOADER_RETURN_OK)
 		return r;
 
 	r = elfLoaderRelocate(elf, writable, executable);

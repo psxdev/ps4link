@@ -107,20 +107,20 @@ int ps4link_response_mkdir(int result);
 int ps4link_response_rmdir(int result);
 
 
-#define PS4LINK_EXECELF_CMD 0xbabe0201
-#define	PS4LINK_EXECSPRX_CMD 0xbabe0202
+#define PS4LINK_EXECUSER_CMD 0xbabe0201
+#define	PS4LINK_EXECKERNEL_CMD 0xbabe0202
 #define	PS4LINK_EXIT_CMD 0xbabe0203
-#define	PS4LINK_EXECPAYLOAD_CMD 0xbabe0204
+#define	PS4LINK_EXECDECRYPT_CMD 0xbabe0204
 #define	PS4LINK_EXECWHOAMI_CMD 0xbabe0205
 #define	PS4LINK_EXECSHOWDIR_CMD 0xbabe0206
 
 
-int ps4link_command_execelf(int argc,char *argv,int argvlen);
-int ps4link_command_exesprx(int argc,char *argv,int argvlen);
-int ps4link_command_execpayload(int argc,char *argv,int argvlen);
+int ps4link_command_execuser(int argc,char *argv,int argvlen);
+int ps4link_command_execkernel(int argc,char *argv,int argvlen);
+int ps4link_command_execdecrypt(int argc,char *argv,int argvlen);
 int ps4link_command_execwhoami(int argc,char *argv,int argvlen);
 int ps4link_command_execshowdir(int argc,char *argv,int argvlen);
-
+int ps4link_command_exit(int argc,char *argv,int argvlen);
 
 //////////////////////////////
 // PS4LINK THREAD FUNCTIONS //
@@ -129,6 +129,18 @@ int ps4link_command_execshowdir(int argc,char *argv,int argvlen);
 void *ps4link_thread_console(void *thread_id);
 
 void *ps4link_thread_request(void *thread_id);
+
+////////////////////////////////
+//   PS4LINK PS4SH FUNCTIONS  //
+////////////////////////////////
+
+int ps4link_fio_listener(char *dst_ip, int port, int timeout);
+int ps4link_srv_setup(char *src_ip, int port);
+int ps4link_log_listener(char *src_ip, int port);
+void ps4link_set_debug(int level);
+int ps4link_debug(void);
+void ps4link_set_root(char *p);
+int ps4link_set_path(char *p);
 
 #endif
 

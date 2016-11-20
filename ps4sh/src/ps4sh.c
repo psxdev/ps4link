@@ -9,9 +9,9 @@ static struct timeval benchtime;
 static char device[MAXPATHLEN];
 static char dir[MAXPATHLEN];
 static char filename[MAXPATHLEN];
-static char device2[MAX_PATH];
-static char dir2[MAX_PATH];
-static char filename2[MAX_PATH];
+//static char device2[MAX_PATH];
+//static char dir2[MAX_PATH];
+//static char filename2[MAX_PATH];
 
 //debugnet udp log
 extern int console_socket;
@@ -28,7 +28,7 @@ extern int ps4sh_socket;
 int ps4sh_log_read(int fd)
 {
 	int ret;
-	int size = sizeof(struct sockaddr_in);
+	unsigned int size = sizeof(struct sockaddr_in);
 	static char buf[1024];
 	static int loc = 0;
 	struct sockaddr_in dest_addr;
@@ -158,11 +158,11 @@ int ps4sh_srv_read(int fd)
 			case PS4LINK_RMDIR_CMD:    
 				ps4link_request_rmdir(&packet);  
 				break;
-			case PS4LINK_EXECELF_CMD:    
+			case PS4LINK_EXECUSER_CMD:    
 			//	ps4link_command_execelf(&packet);  
 			printf("Received execee request/command number (%x)\n",packet.number);
 				break;
-			case PS4LINK_EXECSPRX_CMD:    
+			case PS4LINK_EXECKERNEL_CMD:    
 		//		ps4link_command_execsprx(&packet);  
 				break;
 			default:
@@ -170,7 +170,7 @@ int ps4sh_srv_read(int fd)
 				break;
 		}
 	}
-	return 0;
+	return ret;
 }
 
 int main(int argc, char* argv[])
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
     int maxfd;
     struct sockaddr_in cliaddr;
     struct timeval clienttimeout;
-    int nready;
+    int nready=0;
     socklen_t clilen;
     //
     int client[MAX_CLIENTS];
@@ -447,12 +447,11 @@ int cli_gmake(char *arg)
 
 int cli_list(char *arg)
 {
-	int ret, fd;
 	if (!arg)
 		arg = "";
 
 	split_filename(device, dir, filename, arg);
-	if(device[0] != NULL) 
+	if(device[0] != '\0') 
 	{     
 		return 0;
 	} 
@@ -630,45 +629,41 @@ int cli_setroot(char *arg)
 	return(0);
 }
 
-int cli_execelf(char *arg)
+int cli_execuser(char *arg)
 {
-    int ret;
-	char *newarg;
-    unsigned int argc, argvlen;
-    unsigned char argv[MAX_PATH];
+	//char *newarg;
+    int argc, argvlen;
+    char argv[MAX_PATH];
     argc = fix_cmd_arg(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"argc=%d argv=%s\n",argc,argv);
-    ps4link_command_execelf(argc,argv,argvlen);
+    ps4link_command_execuser(argc,argv,argvlen);
     return 0;
 }
-int cli_execsprx(char *arg)
+int cli_execkernel(char *arg)
 {
-    int ret;
-	char *newarg;
-    unsigned int argc, argvlen;
-    unsigned char argv[MAX_PATH];
+	//char *newarg;
+    int argc, argvlen;
+    char argv[MAX_PATH];
     argc = fix_cmd_arg(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
-    ps4link_command_exesprx(argc,argv,argvlen);
+    ps4link_command_execkernel(argc,argv,argvlen);
     return 0;
 }
-int cli_execpayload(char *arg)
+int cli_execdecrypt(char *arg)
 {
-    int ret;
-	char *newarg;
-    unsigned int argc, argvlen;
-    unsigned char argv[MAX_PATH];
-    argc = fix_cmd_arg(argv, arg, &argvlen);
+	//char *newarg;
+    int argc, argvlen;
+    char argv[MAX_PATH];
+    argc = fix_cmd_arg_non_host(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
-    ps4link_command_execpayload(argc,argv,argvlen);
+    ps4link_command_execdecrypt(argc,argv,argvlen);
     return 0;
 }
 int cli_exitps4(char *arg)
 {
-    int ret;
-	char *newarg;
-    unsigned int argc, argvlen;
-    unsigned char argv[MAX_PATH];
+	//char *newarg;
+    int argc, argvlen;
+    char argv[MAX_PATH];
     argc = fix_cmd_arg(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"argc=%d argv=%s\n",argc,argv);
     ps4link_command_exit(argc,argv,argvlen);
@@ -677,10 +672,9 @@ int cli_exitps4(char *arg)
 }
 int cli_execwhoami(char *arg)
 {
-    int ret;
-	char *newarg;
-    unsigned int argc, argvlen;
-    unsigned char argv[MAX_PATH];
+	//char *newarg;
+    int argc, argvlen;
+    char argv[MAX_PATH];
     argc = fix_cmd_arg(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
     ps4link_command_execwhoami(argc,argv,argvlen);
@@ -688,10 +682,9 @@ int cli_execwhoami(char *arg)
 }
 int cli_execshowdir(char *arg)
 {
-    int ret;
-	char *newarg;
-    unsigned int argc, argvlen;
-    unsigned char argv[MAX_PATH];
+	//char *newarg;
+    int argc, argvlen;
+    char argv[MAX_PATH];
 	
     argc = fix_cmd_arg_non_host(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
@@ -723,7 +716,7 @@ int initialize_readline(void)
 
 
 
-char* command_generator(char* text, int state)
+char* command_generator(const char* text, int state)
 {
 	static int list_index, len;
 	char *name;
@@ -733,7 +726,7 @@ char* command_generator(char* text, int state)
 		len = strlen (text);
 	}
  
-	while (name = commands[list_index].name) {
+	while ((name = commands[list_index].name)) {
 		list_index++;
  
 		if (strncmp (name, text, len) == 0)
@@ -784,7 +777,7 @@ void read_config(void)
 		{
 			if (strcmp(ptr, "") == 0) 
 			{
-				cli_log(stdout);
+				cli_log("stdout");
 			} 
 			else {
 				cli_log(ptr);
@@ -834,7 +827,7 @@ void read_config(void)
 		{
 			if (strcmp(ptr, "") != 0) 
 			{
-				ps4link_set_path(path_split(ptr));
+				ps4link_set_path(ptr);
 			}
 		} 
 		else if (strcmp(key, "suffix") == 0) 

@@ -56,89 +56,91 @@ typedef struct Elf Elf;
 
 typedef enum
 {
-	ElfLoaderReturnOK = 0,
-	ElfLoaderReturnElfNull = -1,
-	ElfLoaderReturnWritableMemoryNull = -2,
-	ElfLoaderReturnExecutableMemoryNull = -3,
-	ElfLoaderReturnNoElf = -4,
-	ElfLoaderReturnUnknownRelocation = -5,
-	ElfLoaderReturnAddressNotFound = -6,
-	ElfLoaderReturnNoSectionsOrSegments = -7,
-	ElfLoaderReturnIsNotLoadable = -8
+	ELF_LOADER_RETURN_OK = 0,
+	ELF_LOADER_RETURN_ELF_NULL = -1,
+	ELF_LOADER_RETURN_NO_WRITABLE_MEMORY = -2,
+	ELF_LOADER_RETURN_NO_EXECUTABLE_MEMORY = -3,
+	ELF_LOADER_RETURN_NO_ELF = -4,
+	ELF_LOADER_RETURN_UNKNOWN_RELOCATION = -5,
+	ELF_LOADER_RETURN_ADDRESS_NOT_FOUND = -6,
+	ELF_LOADER_RETURN_NO_SECTIONS_OR_SEGMENTS = -7,
+	ELF_LOADER_RETURN_IS_NOT_LOADABLE = -8
 }
 ElfLoaderReturn;
 
 typedef enum
 {
-	ElfSectionAttributeNone = 0,
-	ElfSectionAttributeName,
-	ElfSectionAttributeType,
-	ElfSectionAttributeFlags,
-	ElfSectionAttributeAddress,
-	ElfSectionAttributeOffset,
-	ElfSectionAttributeSize,
-	ElfSectionAttributeLink,
-	ElfSectionAttributeInfo,
-	ElfSectionAttributeMemoryAlignment,
-	ElfSectionAttributeEntrySize,
+	ELF_SECTION_ATTRIBUTE_NONE = 0,
+	ELF_SECTION_ATTRIBUTE_NAME,
+	ELF_SECTION_ATTRIBUTE_TYPE,
+	ELF_SECTION_ATTRIBUTE_FLAGS,
+	ELF_SECTION_ATTRIBUTE_ADDRESS,
+	ELF_SECTION_ATTRIBUTE_OFFSET,
+	ELF_SECTION_ATTRIBUTE_SIZE,
+	ELF_SECTION_ATTRIBUTE_LINK,
+	ELF_SECTION_ATTRIBUTE_INFO,
+	ELF_SECTION_ATTRIBUTE_MEMORY_ALIGNMENT,
+	ELF_SECTION_ATTRIBUTE_ENTRY_SIZE,
 }
 ElfSectionAttribute;
 
 typedef enum
 {
-	ElfSegmentAttributeNone = 0,
-	ElfSegmentAttributeType,
-	ElfSegmentAttributeFlags,
-	ElfSegmentAttributeOffset,
-	ElfSegmentAttributeVirtualAddress,
-	ElfSegmentAttributePhysicalAddress,
-	ElfSegmentAttributeFileSize,
-	ElfSegmentAttributeMemorySize,
-	ElfSegmentAttributeAlignment,
+	ELF_SEGMENT_ATTRIBUTE_NONE = 0,
+	ELF_SEGMENT_ATTRIBUTE_TYPE,
+	ELF_SEGMENT_ATTRIBUTE_FLAGS,
+	ELF_SEGMENT_ATTRIBUTE_OFFSET,
+	ELF_SEGMENT_ATTRIBUTE_VIRTUAL_ADDRESS,
+	ELF_SEGMENT_ATTRIBUTE_PHYSICAL_ADDRESS,
+	ELF_SEGMENT_ATTRIBUTE_FILE_SIZE,
+	ELF_SEGMENT_ATTRIBUTE_MEMORY_SIZE,
+	ELF_SEGMENT_ATTRIBUTE_ALIGNMENT,
 }
 ElfSegmentAttribute;
 
 typedef enum
 {
-	ElfDynamicAttributeNone = 0,
-	ElfDynamicAttributeTag,
-	ElfDynamicAttributeValue,
-	ElfDynamicAttributePointer
+	ELF_DYNAMIC_ATTRIBUTE_NONE = 0,
+	ELF_DYNAMIC_ATTRIBUTE_TAG,
+	ELF_DYNAMIC_ATTRIBUTE_VALUE,
+	ELF_DYNAMIC_ATTRIBUTE_POINTER
 }
 ElfDynamicAttribute;
 
 typedef enum
 {
-	ElfRelocationAttributeNone = 0,
-	ElfRelocationAttributeOffset,
-	ElfRelocationAttributeInfo
+	ELF_RELOCATION_ATTRIBUTE_NONE = 0,
+	ELF_RELOCATION_ATTRIBUTE_OFFSET,
+	ELF_RELOCATION_ATTRIBUTE_INFO
 }
 ElfRelocationAttribute;
 
 typedef enum
 {
-	ElfAddendRelocationAttributeNone = 0,
-	ElfAddendRelocationAttributeOffset,
-	ElfAddendRelocationAttributeInfo,
-	ElfAddendRelocationAttributeAddend
+	ELF_ADDEND_RELOCATION_ATTRIBUTE_NONE = 0,
+	ELF_ADDEND_RELOCATION_ATTRIBUTE_OFFSET,
+	ELF_ADDEND_RELOCATION_ATTRIBUTE_INFO,
+	ELF_ADDEND_RELOCATION_ATTRIBUTE_ADDEND
 }
 ElfAddendRelocationAttribute;
 
 typedef enum
 {
-	ElfSymbolAttributeNone = 0,
-	ElfSymbolAttributeName,
-	ElfSymbolAttributeInfo,
-	ElfSymbolAttributeUnused,
-	ElfSymbolAttributeSectionIndex,
-	ElfSymbolAttributeValue,
-	ElfSymbolAttributeSize,
+	ELF_SYMBOL_ATTRIBUTE_NONE = 0,
+	ELF_SYMBOL_ATTRIBUTE_NAME,
+	ELF_SYMBOL_ATTRIBUTE_INFO,
+	ELF_SYMBOL_ATTRIBUTE_UNUSED,
+	ELF_SYMBOL_ATTRIBUTE_SECTION_INDEX,
+	ELF_SYMBOL_ATTRIBUTE_VALUE,
+	ELF_SYMBOL_ATTRIBUTE_SIZE,
 }
 ElfSymbolAttribute;
 
 /* --- inlined getters FIXME: Hint inline */
 
 ElfHeader *elfHeader(Elf *elf);
+size_t elfGetSize(Elf *elf);
+uint8_t *elfGetData(Elf *elf);
 
 uint8_t elfIsElf(Elf *elf);
 uint8_t elfClass(Elf *elf);
@@ -206,5 +208,6 @@ int elfLoaderIsLoadable(Elf *elf);
 int elfLoaderInstantiate(Elf *elf, void *memory);
 int elfLoaderRelocate(Elf *elf, void *writable, void *executable);
 int elfLoaderLoad(Elf *elf, void *writable, void *executable);
+int elfLoaderLoadKernel(Elf *elf, void *writable, void *executable);
 
 #endif

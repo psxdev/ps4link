@@ -11,11 +11,8 @@ endif
 endif
 
 target ?= ps4_elf
-TargetFile=ps4link.elf
+TargetFile=listproc.elf
 
 include $(Ps4Sdk)/make/ps4sdk.mk
 LinkerFlags+=-ldebugnet -lps4link -lSceNet_stub
-
-
-
 

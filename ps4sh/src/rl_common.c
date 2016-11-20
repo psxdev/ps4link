@@ -37,7 +37,7 @@ static llist suffix_list;
 static int accept_suffix(const char *);
 static int is_dir(const char *);
 
-char ** command_completion(char *text,int start,int end)
+char ** command_completion(const char *text,int start,int end)
 {
 	char **matches;
 	matches = (char **)NULL;
@@ -173,7 +173,7 @@ int write_log_line(char *buf)
 	strcpy(line_buf, rl_line_buffer);
 	rl_callback_handler_install(log_prompt(), cli_handler);
 	rl_refresh_line(0, 0);
-	printf(buf);
+	printf("%s",buf);
 	lprompt = !lprompt;
 	rl_on_new_line();
 	rl_callback_handler_install(log_prompt(), cli_handler);
@@ -194,7 +194,7 @@ char * get_prompt(void)
 }
 
 
-void cli_handler(void) 
+void cli_handler(char *name) 
 {
 	if (*rl_line_buffer && rl_line_buffer != NULL)
 	{
