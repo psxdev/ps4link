@@ -26,11 +26,11 @@ PS4LINK FOR PS4
   
   Remote Commands functions 
   
-  1) execuser <name.elf>
+  1) execuser name.elf
   
   This command let you load and exec elf files in user mode compiled with ps4sdk. Check samples directory.
   
-  2) execkernel <name.elf>
+  2) execkernel name.elf
   
   This command let you load and exec elf files in user mode compiled with ps4sdk. Check samples directory. I did not test it too much because PS4Link is running in superuser mode. 
   
@@ -38,11 +38,11 @@ PS4LINK FOR PS4
   
   Show you uid and gid 
   
-  4) execshowdir <ps4path>
+  4) execshowdir ps4path
   
   Let you list filenames in directories from PlayStation 4 system. 
   
-  5) execdecrypt <ps4pathfile>
+  5) execdecrypt ps4pathfile
   
   Let you decrypt elf,self,sprx,dll files from PlayStation 4 system and save it in your PC/Mac with the same name in actual directory.
   
@@ -134,7 +134,7 @@ PS4LINK FOR PS4
   
   * [ps4sdk](http://github.com/ps4dev/ps4sdk) It is the base sdk for ps4dev
   
-  * [elfldr basic loader](http://github.com/ps4dev/elfldr) It is the basic loader for ps4dev however i use embed loader in PS4Link instead
+  * [elfldr basic loader](https://github.com/ps4dev/elf-loader) It is the basic loader for ps4dev however i use embed loader in PS4Link instead
   
   
   
@@ -316,14 +316,18 @@ PS4LINK FOR PS4
  [PS4][INFO]: debugnet initialized
  [PS4][INFO]: Copyright (C) 2010,2016 Antonio Jose Ramos Marquez aka bigboss @psxdev
  [PS4][INFO]: ready to have a lot of fun...
- [PS4][DEBUG]: [PS4LINK] Server request thread UID: 0x810CF440
- [PS4][DEBUG]: [PS4LINK] Server command thread UID: 0x8111E640
- [PS4][DEBUG]: [PS4LINK] Created ps4link_requests_sock: 85
+ [PS4][DEBUG]: getuid() : 1
+ [PS4][DEBUG]: executing privilege scalation
+ [PS4][DEBUG]: ps4KernelExecute ret=0
+ [PS4][DEBUG]: getuid() : 0
+ [PS4][DEBUG]: [PS4LINK] Server request thread UID: 0x80C189C0
+ [PS4][DEBUG]: [PS4LINK] Server command thread UID: 0x80CA8A20
+ [PS4][DEBUG]: [PS4LINK] Created ps4link_requests_sock: 83
  [PS4][DEBUG]: [PS4LINK] bind to ps4link_requests_sock done
  [PS4][DEBUG]: [PS4LINK] Ready for connection 1
  [PS4][DEBUG]: [PS4LINK] Waiting for connection
  [PS4][DEBUG]: [PS4LINK] Command Thread Started.
- [PS4][DEBUG]: [PS4LINK] Created ps4link_commands_sock: 87
+ [PS4][DEBUG]: [PS4LINK] Created ps4link_commands_sock: 85
  [PS4][DEBUG]: [PS4LINK] Command listener waiting for commands...
  ^C
  ```
@@ -358,12 +362,10 @@ PS4LINK FOR PS4
  Connecting to fio ps4link ip 192.168.1.17
  log: [HOST][INFO]: [PS4SH] Ready
  log: [PS4][DEBUG]: [PS4LINK] Client connected from 192.168.1.3 port: 26056
-
  log: [PS4][DEBUG]: [PS4LINK] sock ps4link_fileio set 84 connected 1
  log: [PS4][DEBUG]: [PS4LINK] Initialized and connected from pc/mac ready to receive commands
  log: [PS4][DEBUG]: [PS4LINK] Waiting for connection
  ps4sh> cd ../../samples/listproc/bin
- /usr/local/ps4dev/git/ps4link/samples/listproc/bin
  ps4sh> ls
  total 40
  -rwxr-xr-x  1 bigboss  staff  18856 17 nov 00:52 listproc.elf
