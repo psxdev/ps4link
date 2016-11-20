@@ -774,7 +774,7 @@ PS4LINK FOR PS4
   - ps2dev old comrades. 
   - hitodama for ps4sdk and elfldr 
   - xerpi for ps4ftp code base :P
-  - zecoxao for sharing code to decrypt files i only add save option to host0 :P
+  - wskeu and zecoxao for sharing code to decrypt files i only add save option to host0 :P
   - kr105 for valid return code to userland in his dlclose poc
   - qwertyoruiop and cturt for sharing dlclose information
   - All people who collaborated in ps4dev
