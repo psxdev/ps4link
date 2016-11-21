@@ -104,10 +104,8 @@ printf "\r\n\e[0;32mConfiguring and Building PS4link...\e[0m\r\n\r\n"
 sed -i -e 's/ps4LinkInit(".*"/ps4LinkInit("'$PC_IP'"/' /usr/local/ps4dev/git/ps4link/ps4link/source/main.c
 cd elfldr
 sh copy_ps4link_sources.sh
+cd ps4link
 make
-cd bin
-./ldrgen ldr ldr ldr.js
-mv ldr.js ../../local/ldr/
 
 printf "\r\n\e[0;32mConfiguring and Building ps4sh...\e[0m\r\n\r\n"
 sed -i -e 's/dst_ip\[16\] = ".*"/dst_ip[16] = "'$PS4_IP'"/' /usr/local/ps4dev/git/ps4link/ps4sh/src/ps4sh.c
