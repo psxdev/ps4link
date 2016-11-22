@@ -10,12 +10,13 @@ $(error Neither PS4SDK, Ps4Sdk nor ps4sdk set)
 endif
 endif
 
-target ?= ps4_elf
-TargetFile=ps4link.elf
+
+
+Libraries := -lelfloader
+
+target := ps4_bin
 
 include $(Ps4Sdk)/make/ps4sdk.mk
-LinkerFlags+=-ldebugnet -lps4link -lelfloader -lSceNet_stub
 
-
-
-
+all::
+	../../../generate/bin/generate Elf $(OutPath)/user ../../../local/ldr/ldr.js

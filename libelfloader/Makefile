@@ -12,18 +12,17 @@ endif
 
 target := ps4_lib
 OutPath := lib
-TargetFile := libps4link
+TargetFile := libelfloader
 AllTarget = $(OutPath)/$(TargetFile).a
 
 include $(Ps4Sdk)/make/ps4sdk.mk
 
-
 $(OutPath)/$(TargetFile).a: $(ObjectFiles)
 	$(dirp)
 	$(archive)
+all:: $(OutPath)/$(TargetFile).a
 
 install:
 	@cp $(OutPath)/$(TargetFile).a $(Ps4Sdk)/lib
-	@cp include/ps4link.h $(Ps4Sdk)/include
-	@cp include/jailbreak.h $(Ps4Sdk)/include
+	@cp include/elfloader.h $(Ps4Sdk)/include
 	@echo "Installed!"

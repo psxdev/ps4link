@@ -10,7 +10,10 @@ $(error Neither PS4SDK, Ps4Sdk nor ps4sdk set)
 endif
 endif
 
-target ?= ps4_lib_no_all
+target := ps4_lib
+OutPath := lib
+TargetFile := libdebugnet
+AllTarget = $(OutPath)/$(TargetFile).a
 
 include $(Ps4Sdk)/make/ps4sdk.mk
 
@@ -18,7 +21,6 @@ include $(Ps4Sdk)/make/ps4sdk.mk
 $(OutPath)/$(TargetFile).a: $(ObjectFiles)
 	$(dirp)
 	$(archive)
-all:: $(OutPath)/$(TargetFile).a
 
 install:
 	@cp $(OutPath)/$(TargetFile).a $(Ps4Sdk)/lib

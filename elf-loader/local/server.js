@@ -3,8 +3,8 @@ var url = require("url");
 var path = require("path");
 var fs = require("fs");
 
-var port = process.argv[2] || 5350;
-var basePath = process.argv[3] || process.cwd();
+var basePath = process.argv[2] || process.cwd();
+var port = process.argv[3] || 5350;
 
 http.createServer(function(request, response)
 {

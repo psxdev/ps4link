@@ -454,9 +454,9 @@ int ps4link_request_open(void *packet)
 	{
 		return ps4link_response_open(-1);
 	}
-	printf("antes %x\n",ntohl(request->flags));
+	//printf("antes %x\n",ntohl(request->flags));
 	request->flags = fix_flags(ntohl(request->flags));
-	printf("despues %x\n",request->flags);
+	//printf("despues %x\n",request->flags);
 
 	debugNetPrintf(DEBUG,"Opening %s flags %x\n",request->pathname,request->flags);
     

@@ -1,13 +1,59 @@
+#define _XOPEN_SOURCE 700
+#define __BSD_VISIBLE 1
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "util.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 
-enum{ BinarySegmentSize = 0x100000 };
+enum{ ELF_LOADER_BINARY_SEGMENT_SIZE = 0x100000 };
+
+void *elfLoaderMemoryAllocateFileFromPathAligned(char *file, size_t *size, size_t alignment)
+{
+	struct stat s;
+	FILE *f;
+	uint32_t *b;
+	size_t sz;
+	size_t i;
+
+	if(size != NULL)
+		*size = 0;
+
+	if(stat(file, &s) < 0)
+		return NULL;
+
+	if(alignment == 0)
+		alignment = 1;
+
+ 	sz = ((size_t)s.st_size * alignment) / alignment;
+	b = (uint32_t *)malloc(sz * sizeof(uint8_t));
+
+	if(b == NULL)
+		return NULL;
+
+	f = fopen(file, "rb");
+	if(f == NULL)
+	{
+		free(b);
+		return NULL;
+	}
+	fread(b, s.st_size, 1, f);
+	fclose(f);
+
+	if(size != NULL)
+		*size = sz;
+
+	for(i = s.st_size; i < sz; ++i)
+		((uint32_t *)b)[i] = 0;
+
+	return b;
+}
 
 int main(int argc, char **argv)
 {
@@ -23,7 +69,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	bin = utilAllocFileAligned(argv[2], &s, 4);
+	bin = elfLoaderMemoryAllocateFileFromPathAligned(argv[2], &s, 4);
 	if(bin == NULL)
 	{
 		fprintf(stderr, "Bin %s could not be loaded\n", argv[2]);
@@ -35,12 +81,12 @@ int main(int argc, char **argv)
 	data = NULL;
 	dataSize = 0;
 
-	if(binSize > BinarySegmentSize)
+	if(binSize > ELF_LOADER_BINARY_SEGMENT_SIZE)
 	{
-		for(i = (BinarySegmentSize - 1) / 4; i > 0 && bin[i] == 0; --i);
+		for(i = (ELF_LOADER_BINARY_SEGMENT_SIZE - 1) / 4; i > 0 && bin[i] == 0; --i);
 		textSize = (i + 1) * 4;
-		data = (uint32_t *)((uint8_t *)bin + BinarySegmentSize);
-		dataSize = binSize - BinarySegmentSize;
+		data = (uint32_t *)((uint8_t *)bin + ELF_LOADER_BINARY_SEGMENT_SIZE);
+		dataSize = binSize - ELF_LOADER_BINARY_SEGMENT_SIZE;
 	}
 
 	f = fopen(argv[3], "wb");

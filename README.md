@@ -180,7 +180,16 @@ PS4LINK FOR PS4
   cd libdebugnet
   make
   make install
-  cd ../..
+  cd ..
+  ```
+  
+  compile and instal libelfloader it will let to use elf related function:
+  
+  ```
+  cd libelfloader
+  make
+  make install
+  cd ..
   ```
   
   compile and install libps4link it will let fio host requests and commands support
@@ -189,30 +198,30 @@ PS4LINK FOR PS4
   cd libps4link
   make 
   make install
+  cd ..
   ```
   
   Customize your pc/mac ip configuration if you need in /usr/local/ps4dev/git/ps4link/ps4link/source/main.c in ps4LinkInit call. You must use your pc/mac ip configuration in first parameter.
   
   
-  create ps4link loader based on elfldr 
+  create ps4link loader based on elf-loader 
   
   ```
-  cd ../
   ls
-  LICENSE		elfldr		libps4link	ps4sh
+  LICENSE		elf-loader		libps4link	ps4sh
   README.md	libdebugnet	ps4link		samples
-  cd elfldr
+  cd elf-loader
   ./copy_ps4link_sources.sh
   make
   ```
-  Now you have a ldr.js file in /usr/local/ps4dev/git/ps4link/elfldr/local/ldr with PS4Link embed in it.
+  Now you have a ldr.js file in /usr/local/ps4dev/git/ps4link/elf-loader/local/ldr with PS4Link embed in it.
   
   To run webkit exploit you will need load index.html from directory local. Publish content from directory local in your web server or:
   
   ```
-  cd /usr/local/ps4dev/git/ps4link/eldldr/local
+  cd /usr/local/ps4dev/git/ps4link/elf-loader/local
   node server.js
-  Serving directory /usr/local/ps4dev/git/ps4link/elfldr/local on port 5350
+  Serving directory /usr/local/ps4dev/git/ps4link/elf-loader/local on port 5350
   ```
   
   Now you are ready to run PS4Link from your PlayStation 4
@@ -750,6 +759,9 @@ PS4LINK FOR PS4
 ===================
  Last Changes
 ===================
+  - switched to libraries
+  - switched to elf-loader fronted
+  - add install.sh by droogie
   - ps4sdk compliant
   - Added listproc sample
   - Added execdecrypt command
@@ -775,6 +787,7 @@ PS4LINK FOR PS4
   - hitodama for ps4sdk and elfldr 
   - xerpi for ps4ftp code base :P
   - wskeu and zecoxao for sharing code to decrypt files i only add save option to host0 :P
+  - droogie for testing and install script
   - kr105 for valid return code to userland in his dlclose poc
   - qwertyoruiop and cturt for sharing dlclose information
   - All people who collaborated in ps4dev

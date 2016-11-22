@@ -31,9 +31,10 @@
 
 #include <ps4/memory/protected.h>
 #include <inttypes.h>
+#include <elfloader.h>
+
 #include "ps4link.h"
 #include "ps4link_internal.h"
-#include "elfloader.h"
 #include "kmain.h"
 
 
