@@ -95,6 +95,11 @@ cd libdebugnet
 make & make install
 cd ..
 
+printf "\r\n\e[0;32mBuilding and Installing libelfloader...\e[0m\r\n\r\n"
+cd libelfloader
+make & make install
+cd ..
+
 printf "\r\n\e[0;32mBuilding and Installing libps4link...\e[0m\r\n\r\n"
 cd libps4link
 make & make install
@@ -102,9 +107,9 @@ cd ..
 
 printf "\r\n\e[0;32mConfiguring and Building PS4link...\e[0m\r\n\r\n"
 sed -i -e 's/ps4LinkInit(".*"/ps4LinkInit("'$PC_IP'"/' /usr/local/ps4dev/git/ps4link/ps4link/source/main.c
-cd elfldr
+cd elf-loader
 sh copy_ps4link_sources.sh
-cd ps4link
+make clean
 make
 
 printf "\r\n\e[0;32mConfiguring and Building ps4sh...\e[0m\r\n\r\n"
