@@ -919,7 +919,7 @@ static void *server_thread(void *arg)
 		int client_sockfd;
 		unsigned int addrlen = sizeof(clientaddr);
 
-		debugNetPrintf(DEBUG,"[PS4FTP] Waiting for incoming connections...\n");
+		debugNetPrintf(DEBUG,"[PS4FTP] Waiting for incoming connections on port: %d...\n", ps4_port);
 
 		client_sockfd = sceNetAccept(server_sockfd, (struct sockaddr *)&clientaddr, &addrlen);
 		if (client_sockfd >= 0) {
@@ -1061,6 +1061,7 @@ void ftp_fini()
 int main(int argc, char *argv[])
 {
 	int ret;
+	int port = 1337;
 	uintptr_t intptr=0;
 	sscanf(argv[1],"%p",&intptr);
 	debugNetConfiguration *conf=(debugNetConfiguration *)intptr;
@@ -1068,10 +1069,7 @@ int main(int argc, char *argv[])
 	sleep(3);
 	debugNetPrintf(DEBUG,"[PS4FTP] %d elfname=%s debugnetconf=%s %p %d\n",argc,argv[0],argv[1],conf,conf->SocketFD);
 	
-	//change to your own configuration ps4_ip,port
-	ftp_init("192.168.1.17",1337);
-		
-		
+	ftp_init("0.0.0.0",port);
 		
 	//we finish this connecting to ftp and calling quit command. It will call ftp_fini
 	while(ftp_active)
