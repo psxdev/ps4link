@@ -172,6 +172,9 @@ int ps4sh_srv_read(int fd)
 	}
 	return ret;
 }
+int client[MAX_CLIENTS];
+fd_set master_set, readset, clientset;
+int maxfd,maxi;
 
 int main(int argc, char* argv[])
 {
@@ -180,15 +183,12 @@ int main(int argc, char* argv[])
 	//declare variables
     int ret;
     // poll client stuff
-    int i, j, maxi, connfd, sockfd;
-    int maxfd;
+    int i, j, connfd, sockfd;
     struct sockaddr_in cliaddr;
     struct timeval clienttimeout;
     int nready=0;
     socklen_t clilen;
     //
-    int client[MAX_CLIENTS];
-    fd_set master_set, readset, clientset;
     VERBOSE = 0;
     printf("ps4sh version %s\n",PS4SH_VERSION);
 	//call read config if exist we need redefine syntax and variables
@@ -202,21 +202,7 @@ int main(int argc, char* argv[])
     clienttimeout.tv_usec = USEC;
 	
 	
-	// create request socket connected to ps4link fio service
-	printf("Connecting to fio ps4link ip %s ", dst_ip);
 	
-	request_socket = ps4link_fio_listener(dst_ip, SRV_PORT, 60);
-	if (request_socket < 0) {
-		printf(", failed\n");
-		return 1;
-	}
-	
-	//udp socket to send commands to ps4
-	command_socket = network_connect(dst_ip, 0x4712, SOCK_DGRAM);
-	if (command_socket < 0) {
-		printf(", failed\n");
-		return 1;
-	}
 	
     // client stuff
 	for(i = 0; i < MAX_CLIENTS; i++) {
@@ -249,18 +235,18 @@ int main(int argc, char* argv[])
 	FD_ZERO(&master_set);
 	//standard output
 	FD_SET(0, &master_set);
-	//ps4link fio channel
-	FD_SET(request_socket, &master_set);
 	//udp log channel
 	FD_SET(console_socket, &master_set);
 	//ps4sh channel
 	FD_SET(ps4sh_socket, &master_set);
 	client[0] = 0;
-	client[1] = request_socket;
-	client[2] = console_socket;
-	client[3] = ps4sh_socket;
+	client[1] = console_socket;
+	client[2] = ps4sh_socket;
+	request_socket=-1;
+	client[3] = request_socket;
+	
 	maxfd = ps4sh_socket;
-	maxi = 3;
+	maxi = 2;
 	
 	
 	//initilize readline
@@ -353,8 +339,12 @@ int main(int argc, char* argv[])
 	}
 
 	rl_callback_handler_remove();
-	if ( (ret = network_disconnect(request_socket)) == -1 ) {
+	if(request_socket>0)
+	{
+		if ( (ret = network_disconnect(request_socket)) == -1 ) 
+		{
 		debugNetPrintf(ERROR,"From request_socket network_disconect %s\n",strerror(errno));
+		}
 	}
 	if ( (ret = network_disconnect(console_socket)) == -1 ) {
 		debugNetPrintf(ERROR,"From console_socket network_disconect %s\n",strerror(errno));		
@@ -575,14 +565,57 @@ int cli_status()
 	return 0;
 }
 
-int cli_quit() {
+int cli_quit() 
+{
 	doloop = 0;
 	return 0;
 }
-
-int cli_reconnect() {
-	close(request_socket);
-	request_socket = ps4link_fio_listener(dst_ip, SRV_PORT, 60);
+int cli_connect()
+{
+	
+	if(request_socket<0)
+	{
+		// create request socket connected to ps4link fio service
+		debugNetPrintf(DEBUG,"Connecting to fio ps4link ip %s ", dst_ip);
+	
+		request_socket = ps4link_fio_listener(dst_ip, SRV_PORT, 10);
+		if (request_socket < 0) {
+			printf(", failed\n");
+		}
+		else
+		{
+			//ps4link fio channel
+			FD_SET(request_socket, &master_set);
+			client[3] = request_socket;
+			maxfd = request_socket;
+			maxi=3;
+		
+		
+		}
+		//udp socket to send commands to ps4
+		command_socket = network_connect(dst_ip, 0x4712, SOCK_DGRAM);
+		if (command_socket < 0) 
+		{
+			printf(", failed\n");
+		}
+	}
+	else
+	{
+		debugNetPrintf(ERROR,"you are already connected\n");
+	}
+	
+	return 0;
+	
+	
+}
+int cli_reconnect() 
+{
+	if(request_socket>0)
+	{
+		close(request_socket);
+		request_socket = ps4link_fio_listener(dst_ip, SRV_PORT, 10);
+		client[3] = request_socket;
+	}
 	return 0;
 }
 
@@ -636,7 +669,15 @@ int cli_execuser(char *arg)
     char argv[MAX_PATH];
     argc = fix_cmd_arg(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"argc=%d argv=%s\n",argc,argv);
-    ps4link_command_execuser(argc,argv,argvlen);
+	if(request_socket>0)
+	{
+	    ps4link_command_execuser(argc,argv,argvlen);
+	}
+	else
+	{
+		debugNetPrintf(ERROR,"you need to use connect command first\n");
+		
+	}
     return 0;
 }
 int cli_execkernel(char *arg)
@@ -646,7 +687,15 @@ int cli_execkernel(char *arg)
     char argv[MAX_PATH];
     argc = fix_cmd_arg(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
-    ps4link_command_execkernel(argc,argv,argvlen);
+	if(request_socket>0)
+	{
+	    ps4link_command_execkernel(argc,argv,argvlen);
+	}
+	else
+	{
+		debugNetPrintf(ERROR,"you need to use connect command first\n");
+		
+	}
     return 0;
 }
 int cli_execdecrypt(char *arg)
@@ -656,7 +705,16 @@ int cli_execdecrypt(char *arg)
     char argv[MAX_PATH];
     argc = fix_cmd_arg_non_host(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
-    ps4link_command_execdecrypt(argc,argv,argvlen);
+	if(request_socket>0)
+	{
+		ps4link_command_execdecrypt(argc,argv,argvlen);
+	}
+	else
+	{
+		debugNetPrintf(ERROR,"you need to use connect command first\n");
+		
+	}
+	
     return 0;
 }
 int cli_exitps4(char *arg)
@@ -666,7 +724,15 @@ int cli_exitps4(char *arg)
     char argv[MAX_PATH];
     argc = fix_cmd_arg(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"argc=%d argv=%s\n",argc,argv);
-    ps4link_command_exit(argc,argv,argvlen);
+	if(request_socket>0)
+	{	
+    	ps4link_command_exit(argc,argv,argvlen);
+	}
+	else
+	{
+		debugNetPrintf(ERROR,"you need to use connect command first\n");
+		
+	}
 	doloop=0;
     return 0;
 }
@@ -677,7 +743,16 @@ int cli_execwhoami(char *arg)
     char argv[MAX_PATH];
     argc = fix_cmd_arg(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
-    ps4link_command_execwhoami(argc,argv,argvlen);
+	if(request_socket>0)
+	{
+    	ps4link_command_execwhoami(argc,argv,argvlen);
+	}
+	else
+	{
+		debugNetPrintf(ERROR,"you need to use connect command first\n");
+		
+	}
+	
     return 0;
 }
 int cli_execshowdir(char *arg)
@@ -688,7 +763,15 @@ int cli_execshowdir(char *arg)
 	
     argc = fix_cmd_arg_non_host(argv, arg, &argvlen);
 	debugNetPrintf(DEBUG,"[PS4SH] argc=%d argv=%s\n",argc,argv);
-	ps4link_command_execshowdir(argc,argv,argvlen);
+	if(request_socket>0)
+	{
+		ps4link_command_execshowdir(argc,argv,argvlen);
+	}
+	else
+	{
+		debugNetPrintf(ERROR,"you need to use connect command first\n");
+		
+	}
     return 0;
 }
 /*

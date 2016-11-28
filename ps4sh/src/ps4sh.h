@@ -88,16 +88,19 @@ int ps4sh_srv_read(int);
 void read_config(void);
 int initialize_readline(void);
 
-int cli_cd(), cli_help(), cli_list(), cli_make();
-int cli_pwd(), cli_quit(), cli_execee(), cli_execeiop();
-int cli_reset(), cli_status(), cli_log(), cli_verbose();
-int cli_setroot(), cli_debug(), cli_gsexec();
+int cli_cd();
+int cli_pwd();
+int cli_reset();
+int cli_log();
+int cli_verbose();
+int cli_setroot();
 int cli_gmake(char *arg);
 int cli_make(char *arg);
 int cli_list(char *arg);
 int cli_help(char *arg);
 int cli_debug(); 
 int cli_quit();
+int cli_connect();
 int cli_status();
 int cli_execuser(char *arg);
 int cli_execkernel(char *arg);
@@ -116,8 +119,9 @@ typedef struct {
 
 COMMAND * find_command(char *);
 
-COMMAND commands[22] = {
+COMMAND commands[23] = {
     { "?", cli_help, "? :: Synonym for `help'." },
+    { "connect", cli_connect, "connect :: Connect to ps4sh." },
     { "cd", cli_cd, "cd [dir] :: Change ps4sh directory to [dir]." },
     { "debug", cli_debug, "debug :: Show ps4sh debug messages. ( alt-d )" },
     { "exit", cli_quit, "exit :: Exits ps4sh ( alt-q )" },
