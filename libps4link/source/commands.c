@@ -661,71 +661,158 @@ void do_dump(char *saveFile, int fd, SegmentBufInfo *segBufs, int segBufNum, Elf
 		debugNetPrintf(DEBUG,"[PS4LINK] ps4LinkOpen error opening %s\n", saveFile);
     }
 }
+void decrypt(char *source,char *dest)
+{
+	int fd;
+    int64_t ret;
+	
+	debugNetPrintf(DEBUG,"[PS4LINK] file name to decrypt %s\n",source);
+	debugNetPrintf(DEBUG,"[PS4LINK] savefile in your host %s\n",dest);
+	
+	debugNetPrintf(DEBUG,"[PS4LINK] kernel hook\n");
+    ps4KernelExecute((void*)path_self_mmap_check_function, NULL, &ret, NULL);
+
+	
+	fd=open(source, O_RDONLY);
+	if(fd!=-1)
+	{
+		void *addr = mmap(0, 0x4000, PROT_READ, MAP_PRIVATE, fd, 0);
+		if (addr != MAP_FAILED) 
+		{
+			debugNetPrintf(DEBUG,"[PS4LINK] mmap %s : %p\n", source, addr);
+			uint16_t snum = *(uint16_t*)((uint8_t*)addr + 0x18);
+			Elf64_Ehdr *ehdr = (Elf64_Ehdr *)((uint8_t*)addr + 0x20 + snum * 0x20);
+			debugNetPrintf(DEBUG,"[PS4LINK] ehdr : %p\n", ehdr);
+			
+			Elf64_Phdr *phdrs = (Elf64_Phdr *)((uint8_t *)ehdr + 0x40);
+			debugNetPrintf(DEBUG,"[PS4LINK] phdrs : %p\n", phdrs);
+			
+			int segBufNum = 0;
+			SegmentBufInfo *segBufs = parse_phdr(phdrs, ehdr->e_phnum, &segBufNum);
+			do_dump(dest, fd, segBufs, segBufNum, ehdr);
+			debugNetPrintf(DEBUG,"[PS4LINK] dump completed\n");
+			
+			free(segBufs);
+			munmap(addr, 0x4000);
+			close(fd);
+        }
+		else 
+		{
+			debugNetPrintf(DEBUG,"mmap file %s err : %s\n", source, strerror(errno));
+		}
+	}
+	else
+	{
+		debugNetPrintf(DEBUG,"[PS4LINK] open %s err : %s\n", source, strerror(errno));
+		
+	}
+    
+	debugNetPrintf(DEBUG,"[PS4LINK] kernel unhook\n");
+    ps4KernelExecute((void*)unpath_self_mmap_check_function, NULL, &ret, NULL);
+	debugNetPrintf(DEBUG,"[PS4LINK] end decrypt file %s\n",source);
+	
+}
 void ps4LinkCmdExecDecrypt(ps4link_pkt_exec_cmd *pkg)
 {
 	debugNetPrintf(DEBUG,"[PS4LINK] Received command execdecrypt argc=%x argv=%s\n",ntohl(pkg->argc),pkg->argv);
-	char *filename;
+	char filename[1024];
 	char savefile[256];
-	int fd;
-    int64_t ret;
+	int dfd;
+	int i;
+	char *buffer;
+	struct dirent *dent;
+	struct stat stats;
 	if(UID==0 && GID==0 && pkg->argv[0]!='\0')
 	{
-		filename=(strrchr(pkg->argv, '/'));
-		if(!filename)
-		{
-			debugNetPrintf(DEBUG,"[PS4LINK] basename %s is invalid must begin with / \n",pkg->argv);
+		dfd = open(pkg->argv, O_RDONLY, 0);
+		if(dfd < 0) {
+			debugNetPrintf(DEBUG, "Invalid file name or directory.\n");
+			debugNetPrintf(DEBUG,"[PS4LINK] end command execdecrypt\n");
+			
 			return;
 		}
-		filename=filename+1;
-		debugNetPrintf(DEBUG,"[PS4LINK] file name to decrypt %s\n",filename);
-		sprintf(savefile,"host0:%s",filename);
-		debugNetPrintf(DEBUG,"[PS4LINK] savefile in your host %s\n",savefile);
-		
-		debugNetPrintf(DEBUG,"[PS4LINK] kernel hook\n");
-	    ps4KernelExecute((void*)path_self_mmap_check_function, NULL, &ret, NULL);
-
-		
-		fd=open(pkg->argv, O_RDONLY);
-		if(fd!=-1)
+		int err=fstat(dfd, &stats);
+		if(err<0)
 		{
-			void *addr = mmap(0, 0x4000, PROT_READ, MAP_PRIVATE, fd, 0);
-			if (addr != MAP_FAILED) 
+			debugNetPrintf(DEBUG, "fstat error return  0x%08X \n",err);
+			debugNetPrintf(DEBUG,"[PS4LINK] end command execdecrypt\n");
+			
+			return;
+		}
+		buffer=mmap(NULL, stats.st_blksize+sizeof(struct dirent), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+		if (buffer)
+		{
+			// Make sure we will have a null terminated entry at the end.Thanks people leaving CryEngine code for orbis on github  :)
+			for(i=0;i<stats.st_blksize+sizeof(struct dirent);i++)
 			{
-				debugNetPrintf(DEBUG,"[PS4LINK] mmap %s : %p\n", pkg->argv, addr);
-				uint16_t snum = *(uint16_t*)((uint8_t*)addr + 0x18);
-				Elf64_Ehdr *ehdr = (Elf64_Ehdr *)((uint8_t*)addr + 0x20 + snum * 0x20);
-				debugNetPrintf(DEBUG,"[PS4LINK] ehdr : %p\n", ehdr);
-				
-				Elf64_Phdr *phdrs = (Elf64_Phdr *)((uint8_t *)ehdr + 0x40);
-				debugNetPrintf(DEBUG,"[PS4LINK] phdrs : %p\n", phdrs);
-				
-				int segBufNum = 0;
-				SegmentBufInfo *segBufs = parse_phdr(phdrs, ehdr->e_phnum, &segBufNum);
-				do_dump(savefile, fd, segBufs, segBufNum, ehdr);
-				debugNetPrintf(DEBUG,"[PS4LINK] dump completed\n");
-				
-				free(segBufs);
-				munmap(addr, 0x4000);
-				close(fd);
-	        }
-			else 
+				buffer[i]=0;
+			}
+			err=getdents(dfd, buffer, stats.st_blksize);
+
+			int nOffset = err;
+			while (err > 0 && err < stats.st_blksize)
 			{
-				debugNetPrintf(DEBUG,"mmap file %s err : %s\n", pkg->argv, strerror(errno));
+				err = getdents(dfd, buffer + nOffset, stats.st_blksize-nOffset);
+				nOffset += err;
+			}
+			
+			if (err>0)
+				err=0;
+			
+			dent = (struct dirent *)buffer;
+			while(dent->d_fileno ) 
+			{
+			
+				//debugNetPrintf(DEBUG, "[%s]: %s\n", entryName(dent->d_type), dent->d_name);
+				if(dent->d_type == DT_REG) 
+				{ // only deal with regular file 
+					const char *ext = strrchr(dent->d_name,'.');
+					if((!ext) || (ext == dent->d_name))
+					{ 
+						//not interested on this files
+					}
+					else 
+					{
+						if(strcmp(ext, ".elf")==0 || strcmp(ext, ".self")==0 || strcmp(ext, ".prx")==0 || strcmp(ext, ".sexe")==0 ||  strcmp(ext, ".exe")==0 ||  strcmp(ext, ".sdll")==0 ||  strcmp(ext, ".dll")==0|| strcmp(dent->d_name,"eboot.bin")==0 )
+						{
+							if(strlen(pkg->argv)==1 && pkg->argv[0]=='/')
+							{
+								sprintf(filename,"%s%s",pkg->argv,dent->d_name);
+					
+							}
+							else
+							{
+								sprintf(filename,"%s/%s",pkg->argv,dent->d_name);
+					
+							}
+							sprintf(savefile,"host0:ps4%s",filename);
+				
+							decrypt(filename,savefile);
+				           		
+						}
+					}
+				}
+				
+				
+				dent = (struct dirent *)((void *)dent + dent->d_reclen);
 			}
 		}
-		else
+		munmap(buffer,stats.st_blksize+sizeof(struct dirent));
+
+		debugNetPrintf(DEBUG,"[PS4LINK] closing dfd\n");
+
+		err=close(dfd);  
+		if(err<0)
 		{
-			debugNetPrintf(DEBUG,"[PS4LINK] open %s err : %s\n", pkg->argv, strerror(errno));
-			
+			debugNetPrintf(DEBUG, "close error return  0x%08X \n",err);
+			return;
 		}
-	    
-		debugNetPrintf(DEBUG,"[PS4LINK] kernel unhook\n");
-	    ps4KernelExecute((void*)unpath_self_mmap_check_function, NULL, &ret, NULL);
-		
+	
 	}
 	debugNetPrintf(DEBUG,"[PS4LINK] end command execdecrypt\n");
 	
 }
+
 void ps4LinkCmdExit(ps4link_pkt_exec_cmd *pkg)
 {
 	debugNetPrintf(DEBUG,"[PS4LINK] Received command exit. Closing PS4Link...\n");
