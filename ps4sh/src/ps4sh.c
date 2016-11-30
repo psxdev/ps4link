@@ -22,7 +22,9 @@ extern int command_socket;
 //ps4sh tcp socket for third parties apps
 extern int ps4sh_socket; 
 
-
+int client[MAX_CLIENTS];
+fd_set master_set, readset, clientset;
+int maxfd,maxi;
 
 
 int ps4sh_log_read(int fd)
@@ -77,6 +79,7 @@ int ps4sh_srv_read(int fd)
 {
 	int length = 0;
 	int ret = 0;
+	int i;
 	
 	struct { unsigned int number; unsigned short length; char buffer[512]; } PACKED packet;
 	
@@ -91,14 +94,28 @@ int ps4sh_srv_read(int fd)
 		{
 			close(fd);
 			change_prompt();
-			while(1) 
+			for(i=0;i<3;i++) 
 			{
 				sleep(1);
+				debugNetPrintf(INFO,"tryng to reconnect to %s: %d\n",dst_ip,i);
+				
 				request_socket = ps4link_fio_listener(dst_ip, SRV_PORT, 1);
 				if (request_socket > 0) 
 				{
 					break;
 				}
+				
+			}
+			if(i==3)
+			{
+				debugNetPrintf(ERROR,"Impossible to connect to PlayStation 4 at %s\n",dst_ip);
+				debugNetPrintf(INFO,"Load PS4Link in your PlayStation, then run connect\n", dst_ip);
+				
+				request_socket=-1;
+				client[3]=-1;
+				maxfd--;
+				ret=-1;
+				
 			}
 			change_prompt();
 		} 
@@ -172,10 +189,6 @@ int ps4sh_srv_read(int fd)
 	}
 	return ret;
 }
-int client[MAX_CLIENTS];
-fd_set master_set, readset, clientset;
-int maxfd,maxi;
-
 int main(int argc, char* argv[])
 {
 	
@@ -576,11 +589,12 @@ int cli_connect()
 	if(request_socket<0)
 	{
 		// create request socket connected to ps4link fio service
-		debugNetPrintf(DEBUG,"Connecting to fio ps4link ip %s ", dst_ip);
+		debugNetPrintf(INFO,"Connecting to fio ps4link ip %s \n", dst_ip);
 	
-		request_socket = ps4link_fio_listener(dst_ip, SRV_PORT, 10);
+		request_socket = ps4link_fio_listener(dst_ip, SRV_PORT, 5);
 		if (request_socket < 0) {
-			printf(", failed\n");
+			debugNetPrintf(ERROR,"Connecting to fio ps4link ip %s failed\n", dst_ip);
+			debugNetPrintf(INFO,"Load PS4Link in your PlayStation, then run connect\n", dst_ip);
 		}
 		else
 		{
@@ -589,19 +603,25 @@ int cli_connect()
 			client[3] = request_socket;
 			maxfd = request_socket;
 			maxi=3;
-		
+			//udp socket to send commands to ps4
+			command_socket = network_connect(dst_ip, 0x4712, SOCK_DGRAM);
+			if (command_socket < 0) 
+			{
+				debugNetPrintf(ERROR,"Connecting to command listener ps4link ip %s failed\n", dst_ip);
+				
+			}
+			else
+			{
+				debugNetPrintf(INFO,"PlayStation is listening at %s\n", dst_ip);
+				
+			}
 		
 		}
-		//udp socket to send commands to ps4
-		command_socket = network_connect(dst_ip, 0x4712, SOCK_DGRAM);
-		if (command_socket < 0) 
-		{
-			printf(", failed\n");
-		}
+		
 	}
 	else
 	{
-		debugNetPrintf(ERROR,"you are already connected\n");
+		debugNetPrintf(INFO,"You are already connected to PlayStation 4 at %s\n",dst_ip);
 	}
 	
 	return 0;

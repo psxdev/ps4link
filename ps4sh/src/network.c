@@ -136,9 +136,18 @@ int network_receive(int sock, void *buffer, int size)
 int network_receive_all(int sock, void *buffer, int size) 
 { 
 	int total = 0;
-
+	int ret=0;
   	// Receive the data from the socket.
-  	while (total < size) { total += recvfrom(sock, &((char *)buffer)[total], size - total, 0, NULL, NULL); }
+  	while (total < size) 
+	{ 
+		ret = recvfrom(sock, &((char *)buffer)[total], size - total, 0, NULL, NULL); 
+		if(ret<=0)
+		{
+			total=ret;
+			break;
+		}
+		total=total+ret;
+	}
 
   	// Return the total bytes received.
 	return total;
