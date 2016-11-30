@@ -773,7 +773,7 @@ void ps4LinkCmdExecDecrypt(ps4link_pkt_exec_cmd *pkg)
 					}
 					else 
 					{
-						if(strcmp(ext, ".elf")==0 || strcmp(ext, ".self")==0 || strcmp(ext, ".prx")==0 || strcmp(ext, ".sexe")==0 ||  strcmp(ext, ".exe")==0 ||  strcmp(ext, ".sdll")==0 ||  strcmp(ext, ".dll")==0|| strcmp(dent->d_name,"eboot.bin")==0 )
+						if(strcmp(ext, ".elf")==0 || strcmp(ext, ".self")==0 || strcmp(ext, ".prx")==0 || strcmp(ext, ".sprx")==0 ||  strcmp(ext, ".sdll")==0 ||  strcmp(ext, ".sexe")==0 ||   strcmp(dent->d_name,"eboot.bin")==0 )
 						{
 							if(strlen(pkg->argv)==1 && pkg->argv[0]=='/')
 							{
