@@ -44,7 +44,7 @@ PS4LINK FOR PS4
   
   5) execdecrypt ps4directorypath
   
-  Let you decrypt all elf,self,sprx,prx,dll,sdll,exe,sexe and eboot.bin files from PlayStation 4 system and save it in your PC/Mac with the same name ps4 directory. You need first create in pc/mac where are you running ps4sh mkdir -p ps4/yourps4path
+  Let you decrypt all elf,self,prx,sprx,sdll,sexe and eboot.bin files from PlayStation 4 system and save it in your PC/Mac with the same name ps4 directory. You need first create in pc/mac where are you running ps4sh mkdir -p ps4/yourps4path
   
   For example for /system/sys decrypt
   ```
