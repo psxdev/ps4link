@@ -274,16 +274,21 @@ PS4LINK FOR PS4
   
  6) Webkit ps4link loader
  
-  First to see initial logs execute in your pc/mac
+  First to see initial logs execute in your pc/mac your compiled ps4sh
   ```  
-  socat udp-recv:18194 stdout
+  ps4sh
+  ps4sh version 1.0
+  /Users/bigboss/.ps4shrc: No such file or directory
+
+  log: [HOST][INFO]: [PS4SH] Ready
+  ps4sh>
   ``` 
   Open your PlayStation 4 browser. Open you local directory content, for example if you use node server.js option use the following url:
  
   ```
   http://ipofyourserver:5350
   ```   
-  at stage 5 you will have ps4link waiting for commands and you will see output in yout mac/pc
+  at stage 5 you will have ps4link waiting for commands and you will see output in your mac/pc
   
   ```
   [PS4][INFO]: debugnet initialized
@@ -302,10 +307,9 @@ PS4LINK FOR PS4
   [PS4][DEBUG]: [PS4LINK] Command Thread Started.
   [PS4][DEBUG]: [PS4LINK] Created ps4link_commands_sock: 85
   [PS4][DEBUG]: [PS4LINK] Command listener waiting for commands...
-  
-  ^C
+  ps4sh>
   ```
-  Check that last getuid value is 0 and no bind error displayed, if all is fine you will see that output and you can press ctrl-c if not your PlayStation browser perhaps will give you a memory error check again until you received the right output (UID threads and socks can change in your environment)
+  Check that last getuid value is 0 and no bind error displayed, if all is fine you will see that output if not your PlayStation browser perhaps will give you a memory error check again until you received the right output (UID threads and socks can change in your environment)
   
   You are ready to load your elf files...
   
@@ -315,8 +319,14 @@ PS4LINK FOR PS4
  
  First to see initial logs before open url in PlayStation 4 browser
  
- ```  
- socat udp-recv:18194 stdout
+ ```
+  cd /usr/local/ps4dev/git/ps4link/ps4sh/bin 
+  ./ps4sh   
+  ps4sh version 1.0
+  /Users/bigboss/.ps4shrc: No such file or directory
+
+  log: [HOST][INFO]: [PS4SH] Ready
+  ps4sh>
  ```
  
  after load ps4link on ps4 we will see logs from debugnet library and information about threads created by ps4link
@@ -338,42 +348,17 @@ PS4LINK FOR PS4
  [PS4][DEBUG]: [PS4LINK] Command Thread Started.
  [PS4][DEBUG]: [PS4LINK] Created ps4link_commands_sock: 85
  [PS4][DEBUG]: [PS4LINK] Command listener waiting for commands...
- ^C
+ ps4sh>
  ```
  
- Now it's time to use ps4sh tool from mac/pc. Close socat with control-c
- 
+ Run connect command
  
  
  ```
- cd /usr/local/ps4dev/git/ps4link/ps4sh/bin 
- ./ps4sh
- bigmini:bin bigboss$ debug.sh
- [PS4][INFO]: debugnet initialized
- [PS4][INFO]: Copyright (C) 2010,2016 Antonio Jose Ramos Marquez aka bigboss @psxdev
- [PS4][INFO]: ready to have a lot of fun...
- [PS4][DEBUG]: getuid() : 1
- [PS4][DEBUG]: executing privilege scalation
- [PS4][DEBUG]: ps4KernelExecute ret=0
- [PS4][DEBUG]: getuid() : 0
- [PS4][DEBUG]: [PS4LINK] Server request thread UID: 0x80C189C0
- [PS4][DEBUG]: [PS4LINK] Server command thread UID: 0x80CA8A20
- [PS4][DEBUG]: [PS4LINK] Created ps4link_requests_sock: 83
- [PS4][DEBUG]: [PS4LINK] bind to ps4link_requests_sock done
- [PS4][DEBUG]: [PS4LINK] Ready for connection 1
- [PS4][DEBUG]: [PS4LINK] Waiting for connection
- [PS4][DEBUG]: [PS4LINK] Command Thread Started.
- [PS4][DEBUG]: [PS4LINK] Created ps4link_commands_sock: 85
- [PS4][DEBUG]: [PS4LINK] Command listener waiting for commands...
- ^Cbigmini:bin bigboss$ ./ps4sh
- ps4sh version 1.0
- /Users/bigboss/.ps4shrc: No such file or directory
- Connecting to fio ps4link ip 192.168.1.17
- log: [HOST][INFO]: [PS4SH] Ready
- log: [PS4][DEBUG]: [PS4LINK] Client connected from 192.168.1.3 port: 26056
- log: [PS4][DEBUG]: [PS4LINK] sock ps4link_fileio set 84 connected 1
- log: [PS4][DEBUG]: [PS4LINK] Initialized and connected from pc/mac ready to receive commands
- log: [PS4][DEBUG]: [PS4LINK] Waiting for connection
+ ps4sh> connect
+ log: [HOST][INFO]: [PS4SH] Connecting to fio ps4link ip 192.168.1.17
+ log: [HOST][INFO]: [PS4SH] PlayStation is listening at 192.168.1.17
+ log: [PS4][DEBUG]: [PS4LINK] Client connected from 192.168.1.3 port: 26562
  ps4sh> cd ../../samples/listproc/bin
  ps4sh> ls
  total 40
@@ -759,6 +744,7 @@ PS4LINK FOR PS4
 ===================
  Last Changes
 ===================
+  - fix ps4sh hang when lost connection with PlayStation 4
   - switched to libraries
   - switched to elf-loader fronted
   - add install.sh by droogie

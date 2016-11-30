@@ -25,9 +25,9 @@ make clean && make
 cd local
 node server.js
 
-# Start socat to check output
-socat udp-recv:18194 stdout
-
+# Start ps4sh
+cd /usr/local/ps4dev/git/ps4lik/ps4sh/bin
+./ps4sh
 # Browse ps4 browser to local server (<local>:5350)
 # Wait until the browser hangs in 'step 5'
 # Repeat again if you get out of memory problem
@@ -52,7 +52,7 @@ socat udp-recv:18194 stdout
 
 #Check that no bind error present in log
 
-# If all is fine you can use ps4sh to connect and send commands 
+# If all is fine you can use connect command in ps4sh to connect and send commands 
 ```
 
 
