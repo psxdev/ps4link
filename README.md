@@ -42,10 +42,16 @@ PS4LINK FOR PS4
   
   Let you list filenames in directories from PlayStation 4 system. 
   
-  5) execdecrypt ps4pathfile
+  5) execdecrypt ps4directorypath
   
-  Let you decrypt elf,self,sprx,dll files from PlayStation 4 system and save it in your PC/Mac with the same name in actual directory.
+  Let you decrypt all elf,self,sprx,prx,dll,sdll,exe,sexe and eboot.bin files from PlayStation 4 system and save it in your PC/Mac with the same name ps4 directory. You need first create in pc/mac where are you running ps4sh mkdir -p ps4/yourps4path
   
+  For example for /system/sys decrypt
+  ```
+  ps4sh> mkdir -p ps4/system/sys
+  ps4sh> execdecrypt /system/sys
+  ```
+  Check output at [link](https://gist.github.com/psxdev/cbbace3d73c6bd93250111842b61d1f4)
   5) exitps4
   
   Try to close ps4link resources. If you try to run ps4sh again when all is released you will get a messager saying that it can't connect. Now you can leave ps4 browser.
